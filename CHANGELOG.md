@@ -9,6 +9,12 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 
 _No changes yet._
 
+## [1.2.3] - 2025-11-13
+
+### Fixed
+
+- Spinner logging now emits ANSI escapes via `%b` so Apple Terminal, Hyper, and other 24-bit terminals render animations correctly instead of printing literal `\033[...]` text.
+
 ## [1.2.2] - 2025-11-13
 
 ### Added
@@ -19,7 +25,7 @@ _No changes yet._
 
 - `update-all.sh`, `install.sh`’s version audit, and the release pipeline now consume the centralized spinner helper so long-running steps stay modern without bespoke TTY logic.
 - CLI style guide documents the spinner API plus `FRANKLIN_FORCE_SPINNER` / `FRANKLIN_DISABLE_SPINNER` / `FRANKLIN_UI_SPINNER_VERBOSE` for contributors.
-- Spinner animation now automatically disables itself when running under CI/dumb terminals/`NO_COLOR` or `TERM_PROGRAM=Hyper`, and `scripts/release.sh` opts out by default so captured logs don’t show raw ANSI control codes.
+- Spinner animation now automatically disables itself when running under CI/dumb terminals/`NO_COLOR`, and `scripts/release.sh` opts out by default so captured logs don’t show raw ANSI control codes.
 
 ## [1.2.0] - 2025-11-13
 
