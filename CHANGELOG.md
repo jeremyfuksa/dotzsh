@@ -24,6 +24,8 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 - `_motd_render_services` uses a non-reserved variable name so zsh no longer warns about `status` when printing services.
 - Antigen downloads now use the official single-file endpoint (`https://git.io/antigen`), avoiding broken references to non-existent `bin/` scripts.
 - `_motd_service_icon` no longer declares the reserved `status` variable, fixing residual “read-only variable: status” warnings on Debian systems.
+- Existing Antigen installs referencing the deprecated `/bin/antigen.zsh` shim are automatically backed up and refreshed to the official single-file script, preventing “command not found: antigen” errors while preserving the legacy copy.
+- `_motd_service_icon` now lowercases via `tr`, avoiding the “unrecognized modifier” error seen on older Debian zsh builds.
 
 ## [1.4.1] - 2025-11-14
 

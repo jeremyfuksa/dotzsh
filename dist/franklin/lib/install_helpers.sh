@@ -46,8 +46,20 @@ ensure_antigen_installed() {
   local antigen_version_file="$antigen_dir/.antigen-version"
 
   if [ -f "$antigen_file" ]; then
-    log_debug "Antigen already present at $antigen_file"
-    return 0
+    if grep -q "/bin/antigen\.zsh" "$antigen_file" 2>/dev/null; then
+      local backup="${antigen_dir}.legacy.$(date +%s)"
+      log_info "Legacy Antigen layout detected; backing up to $backup"
+      rm -rf "$backup"
+      mv "$antigen_dir" "$backup"
+    else
+      log_debug "Antigen already present at $antigen_file"
+      return 0
+    fi
+  elif [ -d "$antigen_dir/bin" ]; then
+    local backup="${antigen_dir}.legacy.$(date +%s)"
+    log_info "Legacy Antigen bin directory detected; backing up to $backup"
+    rm -rf "$backup"
+    mv "$antigen_dir" "$backup"
   fi
 
   if ! command -v curl >/dev/null 2>&1; then
