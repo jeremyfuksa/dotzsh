@@ -554,7 +554,8 @@ _motd_render_services() {
             if (( idx < count )); then
                 cell="${cells[idx]}"
                 if (( ${#cell} > column_width - 1 )); then
-                    cell="${cell:0:column_width-2}…"
+                    local truncate_len=$(( column_width > 2 ? column_width - 2 : column_width ))
+                    cell="${cell:0:$truncate_len}…"
                 fi
                 printf -v padded "%-*s" "$column_width" "$cell"
                 line+="$padded"
