@@ -25,6 +25,7 @@ FRANKLIN_TEST_MODE=${FRANKLIN_TEST_MODE:-0}
 FRANKLIN_UI_QUIET=${FRANKLIN_UI_QUIET:-0}
 STEPS_FAILED=0
 STEPS_PASSED=0
+FRANKLIN_ONLY=0
 
 # Shared resources
 # shellcheck source=lib/colors.sh
@@ -74,6 +75,10 @@ fetch_latest_release_tag() {
     latest=$(curl -fsSL "https://api.github.com/repos/jeremyfuksa/franklin/releases/latest" 2>/dev/null \
       | grep -m1 '"tag_name"' \
       | sed -E 's/.*"tag_name"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/' 2>/dev/null || true)
+  fi
+
+  if [ -z "$latest" ]; then
+    latest=$(curl -fsSL "https://raw.githubusercontent.com/jeremyfuksa/franklin/main/VERSION" 2>/dev/null | tr -d '\r' || true)
   fi
 
   if [ -z "$latest" ]; then
@@ -215,6 +220,7 @@ Updates all system components in isolated steps:
 Options:
   --verbose     Show debug output
   --quiet       Suppress Franklin UI logging (stderr only)
+  --franklin-only  Only update Franklin core files
   --help        Show this help message
 
 Exit codes:
@@ -699,6 +705,10 @@ main() {
         FRANKLIN_UI_QUIET=1
         shift
         ;;
+      --franklin-only)
+        FRANKLIN_ONLY=1
+        shift
+        ;;
       --help)
         show_help
         exit 0
@@ -717,6 +727,18 @@ main() {
 
   log_info "Starting unified system update..."
   echo ""
+
+  if [ "$FRANKLIN_ONLY" -eq 1 ]; then
+    run_step "Franklin core" step_franklin_core || true
+    print_section_header "Summary"
+    if [ $STEPS_FAILED -eq 0 ]; then
+      log_success "All steps passed (${STEPS_PASSED})"
+      exit 0
+    else
+      log_warning "Passed: $STEPS_PASSED  Failed: $STEPS_FAILED"
+      exit 1
+    fi
+  fi
 
   # Run update steps (isolated)
   run_step "Franklin core" step_franklin_core || true

@@ -9,7 +9,8 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- _Nothing yet._
+- `update-all.sh` now accepts `--franklin-only` to run just the Franklin core update step.
+- `franklin update` uses the new flag so it only updates Franklin, while `franklin update-all` retains the full workflow entry point.
 
 ### Fixed
 

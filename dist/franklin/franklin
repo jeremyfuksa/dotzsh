@@ -43,6 +43,15 @@ run_update() {
   bash "$UPDATE_SCRIPT" "$@"
 }
 
+run_update_franklin_only() {
+  if [ ! -f "$UPDATE_SCRIPT" ]; then
+    log_error "update script missing: $UPDATE_SCRIPT"
+    return 2
+  fi
+
+  bash "$UPDATE_SCRIPT" --franklin-only "$@"
+}
+
 run_check() {
   if [ ! -f "$CHECK_SCRIPT" ]; then
     log_error "version checker missing: $CHECK_SCRIPT"
@@ -63,7 +72,8 @@ Options:
   -h, --help        Show this help message
 
 Commands:
-  update            Run the unified update workflow (update-all.sh)
+  update            Update Franklin core files only
+  update-all        Run the full unified update workflow
   check             Run the version checker (scripts/check_versions.sh)
   version           Alias for --version
   help              Show this help text
@@ -110,6 +120,9 @@ shift || true
 
 case "$command" in
   update)
+    run_update_franklin_only "$@"
+    ;;
+  update-all)
     run_update "$@"
     ;;
   check)
