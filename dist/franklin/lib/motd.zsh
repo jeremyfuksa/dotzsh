@@ -453,8 +453,8 @@ _motd_simplify_ports() {
 }
 
 _motd_service_icon() {
-    local status="${1:l}"
-    case "$status" in
+    local svc_status="${1:l}"
+    case "$svc_status" in
         running*|up*|active*|healthy*)
             echo "🟢"
             ;;

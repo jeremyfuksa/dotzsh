@@ -22,6 +22,8 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 - Debian installers fall back to the official Starship install script if `snap install starship` fails or snapd is unavailable, ensuring the prompt can be installed non-interactively.
 - Antigen installs now clone the full upstream repository (respecting `FRANKLIN_ANTIGEN_VERSION`), ensuring `bin/antigen.zsh` exists and preventing “command not found: antigen” errors.
 - `_motd_render_services` uses a non-reserved variable name so zsh no longer warns about `status` when printing services.
+- Antigen downloads now use the official single-file endpoint (`https://git.io/antigen`), avoiding broken references to non-existent `bin/` scripts.
+- `_motd_service_icon` no longer declares the reserved `status` variable, fixing residual “read-only variable: status” warnings on Debian systems.
 
 ## [1.4.1] - 2025-11-14
 
