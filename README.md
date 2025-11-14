@@ -53,7 +53,8 @@ Everything lives under `~/.config/franklin` (or your `--install-root`). The inst
 
 | Command | Purpose |
 | --- | --- |
-| `update-all.sh` | Updates OS packages (brew/apt/dnf), Antigen, Starship, NVM, Node, npm globals, and version pins. Detects your OS and runs the appropriate update logic. |
+| `update-all.sh` | Updates Franklin core files plus OS packages (brew/apt/dnf), Antigen, Starship, Python, uv, NVM, Node, npm globals, and version pins. Detects your OS and runs the appropriate update logic. |
+| `franklin` | Helper CLI wrapper for `--version`, `update`, and `check` commands so you can run Franklin tasks anywhere. |
 | `motd` | Renders the Franklin dashboard on demand; auto-runs at login unless disabled. |
 | `reload` | Re-sources `.zshrc` after edits—Franklin's equivalent of poking his head out and checking his surroundings. |
 

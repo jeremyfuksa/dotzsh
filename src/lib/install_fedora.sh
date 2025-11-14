@@ -43,6 +43,8 @@ install_fedora_dependencies() {
     "curl"          # Downloads
     "gcc"           # C compiler
     "make"          # Build tool
+    "python3"       # Python 3
+    "python3-pip"   # pip package manager
   )
 
   local failed=0

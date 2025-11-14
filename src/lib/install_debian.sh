@@ -33,6 +33,8 @@ install_debian_dependencies() {
     "git"           # Version control (should already be installed)
     "curl"          # Downloads (should already be installed)
     "build-essential"  # For compiling
+    "python3"       # Python 3
+    "python3-pip"   # pip package manager
   )
 
   local failed=0

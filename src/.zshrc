@@ -282,6 +282,21 @@ update-all() {
   fi
 }
 
+# franklin: Helper CLI wrapper
+franklin() {
+  local cli="$ZSH_CONFIG_DIR/franklin"
+  if [ ! -x "$cli" ]; then
+    cli="$ZSH_CONFIG_DIR/franklin.sh"
+  fi
+
+  if [ -x "$cli" ]; then
+    "$cli" "$@"
+  else
+    echo "Franklin CLI not found" >&2
+    return 1
+  fi
+}
+
 # ============================================================================
 # PATH Cleanup
 # ============================================================================

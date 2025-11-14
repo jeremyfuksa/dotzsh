@@ -32,6 +32,7 @@ install_macos_dependencies() {
     "fzf"           # Fuzzy finder
     "starship"      # Prompt
     "bat"           # Cat with syntax highlighting
+    "python3"       # Python 3
   )
 
   local failed=0

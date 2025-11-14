@@ -9,6 +9,15 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- _Nothing yet._
+
+## [1.4.0] - 2025-11-14
+
+### Added
+
+- Introduced the `franklin` helper CLI so `franklin -v`, `franklin update`, and `franklin check` work from any shell without spelunking through the install directory.
+- `update-all.sh` now self-updates Franklin (git pull or release tarball) so the core files stay in sync before other maintenance steps run.
+- Added Python runtime and uv maintenance steps to `update-all.sh` so Homebrew/apt/dnf installs stay current alongside Node/npm.
 - `.zshrc` now sources `~/.franklin.local.zsh` (or `FRANKLIN_LOCAL_CONFIG`) so you can keep private aliases outside the repo; the installer creates the stub automatically.
 - MOTD automatically shows a Docker/services grid when containers are present or `MOTD_SERVICES` defines custom daemons to monitor.
 

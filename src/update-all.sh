@@ -66,6 +66,23 @@ print_section_header() {
   franklin_ui_section "$1"
 }
 
+fetch_latest_release_tag() {
+  local latest=""
+  if command -v gh >/dev/null 2>&1; then
+    latest=$(gh release view --json tagName -q '.tagName' 2>/dev/null || true)
+  else
+    latest=$(curl -fsSL "https://api.github.com/repos/jeremyfuksa/franklin/releases/latest" 2>/dev/null \
+      | grep -m1 '"tag_name"' \
+      | sed -E 's/.*"tag_name"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/' 2>/dev/null || true)
+  fi
+
+  if [ -z "$latest" ]; then
+    latest="unknown"
+  fi
+
+  printf '%s\n' "$latest"
+}
+
 print_version_status() {
   local turtle="🐢"
   local version_file="$SCRIPT_DIR/VERSION"
@@ -188,6 +205,9 @@ Updates all system components in isolated steps:
   - System packages (brew, apt, dnf)
   - Antigen plugins
   - Starship prompt
+  - Franklin core (self-update)
+  - Python runtime and tooling
+  - uv CLI releases
   - NVM and Node.js
   - npm global packages
   - Version pin audit (compares pinned dependencies to upstream)
@@ -207,6 +227,80 @@ EOF
 # ============================================================================
 # Update Steps
 # ============================================================================
+
+step_franklin_core() {
+  local install_dir="$SCRIPT_DIR"
+  local version_file="$install_dir/VERSION"
+  local current_version="unknown"
+  if [ -f "$version_file" ]; then
+    current_version=$(cat "$version_file" 2>/dev/null || echo "unknown")
+  fi
+
+  local latest_version
+  latest_version=$(fetch_latest_release_tag)
+  if [ -z "$latest_version" ] || [ "$latest_version" = "unknown" ]; then
+    log_warning "Unable to determine latest Franklin release."
+    return 1
+  fi
+
+  if [ "$current_version" = "$latest_version" ]; then
+    log_info "Franklin already at ${current_version}."
+    return 0
+  fi
+
+  if [ -d "$install_dir/.git" ]; then
+    if [ -n "$(git -C "$install_dir" status --porcelain 2>/dev/null)" ]; then
+      log_warning "Franklin directory has local modifications; skipping git update."
+      return 1
+    fi
+
+    if run_with_spinner "Updating Franklin (git)" bash -c "cd '$install_dir' && git fetch --quiet --tags && git pull --ff-only"; then
+      log_info "Franklin updated via git. Restart your shell to load the new release."
+      return 0
+    fi
+
+    log_warning "Git-based Franklin update failed."
+    return 2
+  fi
+
+  local tmpdir
+  tmpdir=$(mktemp -d)
+  local tarball="$tmpdir/franklin.tar.gz"
+  local extract_dir="$tmpdir/extracted"
+  mkdir -p "$extract_dir"
+  local download_url="https://github.com/jeremyfuksa/franklin/releases/download/${latest_version}/franklin.tar.gz"
+
+  if ! run_with_spinner "Downloading Franklin ${latest_version}" curl -fL "$download_url" -o "$tarball"; then
+    log_warning "Failed to download Franklin release ${latest_version}."
+    rm -rf "$tmpdir"
+    return 2
+  fi
+
+  if ! run_with_spinner "Extracting Franklin ${latest_version}" tar -xzf "$tarball" -C "$extract_dir"; then
+    log_warning "Failed to extract Franklin release archive."
+    rm -rf "$tmpdir"
+    return 2
+  fi
+
+  local install_desc="Installing Franklin ${latest_version}"
+  if command -v rsync >/dev/null 2>&1; then
+    if ! run_with_spinner "$install_desc" rsync -a --delete --exclude motd.env "$extract_dir"/ "$install_dir"/; then
+      log_warning "Failed to install Franklin release."
+      rm -rf "$tmpdir"
+      return 2
+    fi
+  else
+    if ! run_with_spinner "$install_desc" bash -c "cd '$extract_dir' && tar -cf - . | (cd '$install_dir' && tar -xf -)"; then
+      log_warning "Failed to install Franklin release."
+      rm -rf "$tmpdir"
+      return 2
+    fi
+  fi
+
+  rm -rf "$tmpdir"
+  log_info "Franklin updated to ${latest_version}. Restart your shell to load the new release."
+  return 0
+}
 
 step_os_packages() {
   source "$SCRIPT_DIR/lib/os_detect.sh" >/dev/null 2>&1
@@ -364,6 +458,95 @@ step_starship() {
   fi
 }
 
+step_python_runtime() {
+  if ! command -v python3 >/dev/null 2>&1; then
+    log_warning "Python 3 not installed, skipping"
+    return 1
+  fi
+
+  source "$SCRIPT_DIR/lib/os_detect.sh" >/dev/null 2>&1
+
+  case "$OS_FAMILY" in
+    macos)
+      if command -v brew >/dev/null 2>&1; then
+        local brew_formula="" candidate
+        for candidate in python3 python; do
+          if brew list "$candidate" >/dev/null 2>&1; then
+            brew_formula="$candidate"
+            break
+          fi
+        done
+
+        if [ -z "$brew_formula" ]; then
+          brew_formula=$(brew list --formula 2>/dev/null | awk '/^python@[0-9.]+$/ {print; exit}')
+        fi
+
+        if [ -n "$brew_formula" ]; then
+          log_info "Updating Python via Homebrew ($brew_formula)..."
+          if [ -z "$(brew outdated --quiet "$brew_formula")" ]; then
+            log_info "Python already up to date."
+          else
+            if ! run_with_spinner "Upgrading Python" brew upgrade "$brew_formula" >/dev/null 2>&1; then
+              log_warning "Failed to upgrade Python via Homebrew"
+              return 2
+            fi
+          fi
+          return 0
+        fi
+      fi
+      ;;
+    debian)
+      log_info "Updating Python via apt..."
+      if run_with_spinner "Upgrading python3" sudo apt-get install -y --only-upgrade python3 python3-pip >/dev/null 2>&1; then
+        return 0
+      fi
+      log_warning "Failed to upgrade Python via apt"
+      return 2
+      ;;
+    fedora)
+      log_info "Updating Python via dnf..."
+      if run_with_spinner "Upgrading python3" sudo dnf upgrade -y python3 python3-pip >/dev/null 2>&1; then
+        return 0
+      fi
+      log_warning "Failed to upgrade Python via dnf"
+      return 2
+      ;;
+  esac
+
+  log_warning "Python update skipped (unsupported install method)"
+  return 1
+}
+
+step_uv() {
+  if ! command -v uv >/dev/null 2>&1; then
+    log_warning "uv not installed, skipping"
+    return 1
+  fi
+
+  if command -v brew >/dev/null 2>&1 && brew list uv >/dev/null 2>&1; then
+    log_info "Updating uv via Homebrew..."
+    if [ -z "$(brew outdated --quiet uv)" ]; then
+      log_info "uv already up to date."
+      return 0
+    fi
+
+    if run_with_spinner "Upgrading uv" brew upgrade uv >/dev/null 2>&1; then
+      return 0
+    fi
+
+    log_warning "Failed to upgrade uv via Homebrew"
+    return 2
+  fi
+
+  log_info "Updating uv via self updater..."
+  if run_with_spinner "uv self-update" uv self update >/dev/null 2>&1; then
+    return 0
+  fi
+
+  log_warning "uv self-update failed"
+  return 2
+}
+
 step_nvm() {
   local nvm_dir="${NVM_DIR:-$HOME/.nvm}"
 
@@ -503,7 +686,7 @@ step_version_pins() {
 
 main() {
   # Parse arguments
-  while [ $# -gt 0 ]; do
+  while [ $# > 0 ]; do
     case "$1" in
       --verbose)
         VERBOSE=1
@@ -533,9 +716,12 @@ main() {
   echo ""
 
   # Run update steps (isolated)
+  run_step "Franklin core" step_franklin_core || true
   run_step "OS packages" step_os_packages || true
   run_step "Antigen plugins" step_antigen || true
   run_step "Starship prompt" step_starship || true
+  run_step "Python runtime" step_python_runtime || true
+  run_step "uv CLI" step_uv || true
   run_step "NVM and Node.js" step_nvm || true
   run_step "npm global packages" step_npm_global || true
   run_step "Pinned version audit" step_version_pins || true
