@@ -110,6 +110,10 @@ print_version_status() {
       | sed -E 's/.*"tag_name"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/' 2>/dev/null || echo "unknown")
   fi
 
+  if [ "$latest_version" = "unknown" ] || [ -z "$latest_version" ]; then
+    latest_version=$(curl -fsSL "https://raw.githubusercontent.com/jeremyfuksa/franklin/main/VERSION" 2>/dev/null | tr -d '\r' || echo "unknown")
+  fi
+
   if [ "$current_version" != "unknown" ] && [ "$latest_version" != "unknown" ]; then
     if [ "$current_version" = "$latest_version" ]; then
       status="current"
@@ -148,6 +152,10 @@ print_version_status() {
     latest_version=$(curl -fsSL "https://api.github.com/repos/jeremyfuksa/franklin/releases/latest" \
       | grep -m1 '"tag_name"' \
       | sed -E 's/.*"tag_name"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/' 2>/dev/null || echo "unknown")
+  fi
+
+  if [ "$latest_version" = "unknown" ] || [ -z "$latest_version" ]; then
+    latest_version=$(curl -fsSL "https://raw.githubusercontent.com/jeremyfuksa/franklin/main/VERSION" 2>/dev/null | tr -d '\r' || echo "unknown")
   fi
 
   if [ "$current_version" != "unknown" ] && [ "$latest_version" != "unknown" ]; then
