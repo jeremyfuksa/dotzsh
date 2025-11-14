@@ -477,9 +477,10 @@ _motd_get_services() {
         local docker_output
         docker_output=$(docker ps -a --format '{{.Names}}|{{.Status}}|{{.Ports}}' 2>/dev/null)
         if [[ -n "$docker_output" ]]; then
-            while IFS='|' read -r name status ports; do
+            local name entry_status ports
+            while IFS='|' read -r name entry_status ports; do
                 [[ -z "$name" ]] && continue
-                entries+=("docker|$status|$name|$ports")
+                entries+=("docker|$entry_status|$name|$ports")
             done <<<"$docker_output"
         fi
     fi

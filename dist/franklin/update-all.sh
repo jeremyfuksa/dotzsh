@@ -339,6 +339,10 @@ step_os_packages() {
       ;;
     debian)
       log_info "Updating apt packages..."
+      if ! sudo -v >/dev/null 2>&1; then
+        log_warning "Unable to refresh sudo credentials for apt updates."
+        return 2
+      fi
       if run_with_spinner "Updating package lists" sudo apt-get update -qq; then
         run_with_spinner "Upgrading packages" sudo apt-get upgrade -y
         return 0

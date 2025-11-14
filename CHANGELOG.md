@@ -16,6 +16,8 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 
 - `update-all.sh` now updates git-based Franklin installs even when the GitHub API is unreachable, falling back to direct `git pull` before checking release tarballs.
 - Release status now falls back to the repo `VERSION` file when the GitHub API is unavailable, eliminating spurious “unable to check latest” warnings.
+- `_motd_get_services` no longer assigns to zsh’s read-only `status` parameter, fixing the “read-only variable: status” warning on Debian-based installs.
+- Debian updates now revalidate `sudo` credentials before wrapping apt commands in the spinner, preventing hidden password prompts and apparent hangs.
 
 ## [1.4.1] - 2025-11-14
 
