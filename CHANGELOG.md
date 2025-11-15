@@ -7,6 +7,18 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- MOTD banner now uses dual-color design (middle row background uses main background color, creating visual contrast with half-block borders)
+
+## [1.5.6] - 2025-01-15
+
+### Fixed
+
+- UI section banners (install/update) now use consistent color (middle row background matches half-block character color)
+
+## [1.5.5] - 2025-01-15
+
 ### Added
 
 - `install` wrapper function for unified package installation across platforms (automatically uses brew/apt/dnf based on OS)
@@ -21,8 +33,6 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- UI section banners (install/update) now use consistent color (middle row background matches half-block character color)
-- MOTD banner now uses consistent color (middle row background matches half-block character color instead of using different shade)
 - MOTD service icons now include trailing space for better visual separation from service names
 - MOTD memory calculation now uses floating-point arithmetic instead of integer division, fixing "0M" display when RAM usage is less than 1GB
 - MOTD services grid now uses correct 1-indexed array access for zsh (was accessing empty cells[0] instead of cells[1])
