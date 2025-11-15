@@ -9,32 +9,42 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `install` wrapper function for unified package installation across platforms (automatically uses brew/apt/dnf based on OS)
+- `franklin reload` command to reload shell configuration (replaces standalone `reload()` function)
 - `update-all.sh` now accepts `--franklin-only` to run just the Franklin core update step.
 - `franklin update` uses the new flag so it only updates Franklin, while `franklin update-all` retains the full workflow entry point.
+
+### Changed
+
+- Moved `reload` functionality from standalone function to `franklin reload` subcommand, avoiding namespace conflicts with plugin aliases
+
+### Fixed
+
+## [1.4.20] - 2025-01-15
 
 ### Fixed
 
 - `.zshrc` now unaliases `reload` before defining the function, preventing "defining function based on alias" parse errors when Antigen plugins define a `reload` alias.
 - `update-all.sh` now updates git-based Franklin installs even when the GitHub API is unreachable, falling back to direct `git pull` before checking release tarballs.
-- Release status now falls back to the repo `VERSION` file when the GitHub API is unavailable, eliminating spurious “unable to check latest” warnings.
-- `_motd_get_services` no longer assigns to zsh’s read-only `status` parameter, fixing the “read-only variable: status” warning on Debian-based installs.
+- Release status now falls back to the repo `VERSION` file when the GitHub API is unavailable, eliminating spurious "unable to check latest" warnings.
+- `_motd_get_services` no longer assigns to zsh's read-only `status` parameter, fixing the "read-only variable: status" warning on Debian-based installs.
 - Debian updates now revalidate `sudo` credentials before wrapping apt commands in the spinner, preventing hidden password prompts and apparent hangs.
 - Version audit skips git-based Antigen upgrades when local modifications are present, logging a warning instead of failing the entire step.
 - Debian installers fall back to the official Starship install script if `snap install starship` fails or snapd is unavailable, ensuring the prompt can be installed non-interactively.
-- Antigen installs now clone the full upstream repository (respecting `FRANKLIN_ANTIGEN_VERSION`), ensuring `bin/antigen.zsh` exists and preventing “command not found: antigen” errors.
+- Antigen installs now clone the full upstream repository (respecting `FRANKLIN_ANTIGEN_VERSION`), ensuring `bin/antigen.zsh` exists and preventing "command not found: antigen" errors.
 - `_motd_render_services` uses a non-reserved variable name so zsh no longer warns about `status` when printing services.
 - Antigen downloads now use the official single-file endpoint (`https://git.io/antigen`), avoiding broken references to non-existent `bin/` scripts.
-- `_motd_service_icon` no longer declares the reserved `status` variable, fixing residual “read-only variable: status” warnings on Debian systems.
-- Existing Antigen installs referencing the deprecated `/bin/antigen.zsh` shim are automatically backed up and refreshed to the official single-file script, preventing “command not found: antigen” errors while preserving the legacy copy.
-- `_motd_service_icon` now lowercases via `tr`, avoiding the “unrecognized modifier” error seen on older Debian zsh builds.
-- `_motd_render_services` truncates long cells using portable arithmetic, eliminating “unrecognized modifier” crashes when drawing the services grid.
-- `step_nvm` skips deleting active Node versions when pruning old releases, removing spurious “Failed to remove vXX.Y.Z” warnings on Debian hosts.
-- Color helpers now auto-detect terminal capabilities, falling back to 256-color or basic ANSI palettes when truecolor isn’t supported so Debian installers render cleanly.
+- `_motd_service_icon` no longer declares the reserved `status` variable, fixing residual "read-only variable: status" warnings on Debian systems.
+- Existing Antigen installs referencing the deprecated `/bin/antigen.zsh` shim are automatically backed up and refreshed to the official single-file script, preventing "command not found: antigen" errors while preserving the legacy copy.
+- `_motd_service_icon` now lowercases via `tr`, avoiding the "unrecognized modifier" error seen on older Debian zsh builds.
+- `_motd_render_services` truncates long cells using portable arithmetic, eliminating "unrecognized modifier" crashes when drawing the services grid.
+- `step_nvm` skips deleting active Node versions when pruning old releases, removing spurious "Failed to remove vXX.Y.Z" warnings on Debian hosts.
+- Color helpers now auto-detect terminal capabilities, falling back to 256-color or basic ANSI palettes when truecolor isn't supported so Debian installers render cleanly.
 - Truecolor detection now also checks `tput colors` (>= 16777216) so capable Debian terminals get 24-bit badges without needing `COLORTERM=truecolor`.
-- UI color bindings now degrade gracefully: if primary Campfire colors aren’t available (basic ANSI mode), badges fall back to secondary/neutral palettes instead of purple/gray blocks.
+- UI color bindings now degrade gracefully: if primary Campfire colors aren't available (basic ANSI mode), badges fall back to secondary/neutral palettes instead of purple/gray blocks.
 - Fixed a typo in the version audit so `fzf --version` output redirects to `/dev/null` (not `/divnull`), eliminating the Debian warning.
-- Version audit now detects uv installs from `~/.local/bin/uv`, so Debian installs see uv as “system” once the official installer runs.
-- System packages managed by apt/snap are now labeled as “lagging” instead of “update_available”, acknowledging that Debian repos often trail upstream releases.
+- Version audit now detects uv installs from `~/.local/bin/uv`, so Debian installs see uv as "system" once the official installer runs.
+- System packages managed by apt/snap are now labeled as "lagging" instead of "update_available", acknowledging that Debian repos often trail upstream releases.
 
 ## [1.4.1] - 2025-11-14
 

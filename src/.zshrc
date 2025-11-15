@@ -261,15 +261,21 @@ cleanup-path() {
   export PATH=${(j/:/)path}
 }
 
-# reload: Reload shell configuration
-# Unalias in case a plugin defined it
-unalias reload 2>/dev/null || true
-reload() {
-  echo "Reloading shell configuration..."
-  if command -v zsh >/dev/null 2>&1; then
-    exec zsh
+# install: Unified package manager wrapper
+install() {
+  if [ $# -eq 0 ]; then
+    echo "Usage: install <package...>" >&2
+    return 1
+  fi
+
+  if [ "$OS_FAMILY" = "macos" ] && command -v brew >/dev/null 2>&1; then
+    brew install "$@"
+  elif [ "$OS_FAMILY" = "debian" ]; then
+    sudo apt install -y "$@"
+  elif [ "$OS_FAMILY" = "fedora" ]; then
+    sudo dnf install -y "$@"
   else
-    echo "Error: zsh not found in PATH" >&2
+    echo "Error: Unsupported OS or package manager not found" >&2
     return 1
   fi
 }
