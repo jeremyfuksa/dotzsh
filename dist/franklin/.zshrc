@@ -262,6 +262,8 @@ cleanup-path() {
 }
 
 # reload: Reload shell configuration
+# Unalias in case a plugin defined it
+unalias reload 2>/dev/null || true
 reload() {
   echo "Reloading shell configuration..."
   if command -v zsh >/dev/null 2>&1; then
