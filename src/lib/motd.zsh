@@ -257,7 +257,7 @@ _motd_render_banner() {
     done
     top_row+="${reset}"
 
-    # Middle row: space + hostname + space + (IP address) in main color
+    # Middle row: space + hostname + space + (IP address) - use same color as half-blocks
     local label=" ${hostname} (${ip_address})"
     local visible_len=${#label}
     local padding=0
@@ -274,7 +274,9 @@ _motd_render_banner() {
         spaces=$(printf "%*s" "$padding" "")
     fi
 
-    local middle_row="${bg_main}${text_color_code}${bold}${label}${spaces}${reset}"
+    # Use fg_darker as background to match the half-block character colors
+    local middle_bg="${fg_darker/38;/48;}"  # Convert foreground to background color
+    local middle_row="${middle_bg}${text_color_code}${bold}${label}${spaces}${reset}"
 
     # Bottom row: width × ▀ in darker foreground color (no background)
     local bottom_row="${fg_darker}"

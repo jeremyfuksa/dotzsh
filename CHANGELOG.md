@@ -21,6 +21,7 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- MOTD banner now uses consistent color (middle row background matches half-block character color instead of using different shade)
 - MOTD service icons now include trailing space for better visual separation from service names
 - MOTD memory calculation now uses floating-point arithmetic instead of integer division, fixing "0M" display when RAM usage is less than 1GB
 - MOTD services grid now uses correct 1-indexed array access for zsh (was accessing empty cells[0] instead of cells[1])
