@@ -482,16 +482,16 @@ _motd_service_icon() {
 
     case "$svc_status" in
         running*|up*|active*|healthy*)
-            printf '\033[32m●%s' "$reset"  # Green
+            printf '\033[32m● %s' "$reset"  # Green
             ;;
         exited*|dead*|inactive*|failed*|created*|down*|unhealthy*)
-            printf '\033[31m●%s' "$reset"  # Red
+            printf '\033[31m● %s' "$reset"  # Red
             ;;
         restarting*|start*|activating*)
-            printf '\033[33m●%s' "$reset"  # Yellow
+            printf '\033[33m● %s' "$reset"  # Yellow
             ;;
         *)
-            printf '\033[37m●%s' "$reset"  # Gray
+            printf '\033[37m● %s' "$reset"  # Gray
             ;;
     esac
 }
@@ -563,7 +563,7 @@ _motd_render_services() {
         IFS='|' read -r type entry_status name ports <<<"$entry"
         icon=$(_motd_service_icon "$entry_status")
         port_display=$(_motd_simplify_ports "$ports")
-        cell="${icon} ${name}"
+        cell="${icon}${name}"
         if [[ -n "$port_display" ]]; then
             cell+=" ${port_display}"
         fi
