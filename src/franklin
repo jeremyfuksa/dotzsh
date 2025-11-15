@@ -138,7 +138,7 @@ case "$command" in
   reload)
     echo "Reloading shell configuration..."
     if command -v zsh >/dev/null 2>&1; then
-      exec zsh
+      exec zsh -l
     else
       log_error "zsh not found in PATH"
       exit 1

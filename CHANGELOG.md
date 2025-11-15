@@ -7,6 +7,12 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `franklin reload` now starts a login shell (`exec zsh -l`), preserving login shell status so `logout` command works correctly
+
+## [1.5.7] - 2025-01-15
+
 ### Changed
 
 - MOTD banner now uses dual-color design (middle row background uses main background color, creating visual contrast with half-block borders)
