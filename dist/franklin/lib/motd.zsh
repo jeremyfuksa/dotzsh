@@ -167,8 +167,15 @@ _motd_get_memory_metrics() {
             local memavail=$(grep "MemAvailable:" /proc/meminfo | awk '{print $2}')
 
             if [[ -n "$memtotal" && -n "$memavail" ]]; then
-                mem_total=$((memtotal / 1048576))  # KB to GB
-                mem_used=$((mem_total - memavail / 1048576))  # Used = Total - Available
+                # Use awk for floating-point arithmetic to avoid integer truncation
+                local mem_metrics=$(awk -v total="$memtotal" -v avail="$memavail" 'BEGIN {
+                    total_gb = total / 1048576
+                    avail_gb = avail / 1048576
+                    used_gb = total_gb - avail_gb
+                    printf "%.1f %.1f", used_gb, total_gb
+                }')
+                mem_used=$(echo "$mem_metrics" | cut -d' ' -f1)
+                mem_total=$(echo "$mem_metrics" | cut -d' ' -f2)
             fi
         fi
     fi
@@ -475,16 +482,16 @@ _motd_service_icon() {
 
     case "$svc_status" in
         running*|up*|active*|healthy*)
-            printf '\033[32m●%s' "$reset"  # Green
+            printf '\033[32m● %s' "$reset"  # Green
             ;;
         exited*|dead*|inactive*|failed*|created*|down*|unhealthy*)
-            printf '\033[31m●%s' "$reset"  # Red
+            printf '\033[31m● %s' "$reset"  # Red
             ;;
         restarting*|start*|activating*)
-            printf '\033[33m●%s' "$reset"  # Yellow
+            printf '\033[33m● %s' "$reset"  # Yellow
             ;;
         *)
-            printf '\033[37m●%s' "$reset"  # Gray
+            printf '\033[37m● %s' "$reset"  # Gray
             ;;
     esac
 }
@@ -556,7 +563,7 @@ _motd_render_services() {
         IFS='|' read -r type entry_status name ports <<<"$entry"
         icon=$(_motd_service_icon "$entry_status")
         port_display=$(_motd_simplify_ports "$ports")
-        cell="${icon} ${name}"
+        cell="${icon}${name}"
         if [[ -n "$port_display" ]]; then
             cell+=" ${port_display}"
         fi
