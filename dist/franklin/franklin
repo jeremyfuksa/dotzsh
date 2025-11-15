@@ -81,6 +81,7 @@ Commands:
   update            Update Franklin core files only
   update-all        Run the full unified update workflow
   check             Run the version checker (scripts/check_versions.sh)
+  reload            Reload the shell configuration (exec zsh)
   version           Alias for --version
   help              Show this help text
 
@@ -133,6 +134,15 @@ case "$command" in
     ;;
   check)
     run_check "$@"
+    ;;
+  reload)
+    echo "Reloading shell configuration..."
+    if command -v zsh >/dev/null 2>&1; then
+      exec zsh
+    else
+      log_error "zsh not found in PATH"
+      exit 1
+    fi
     ;;
   version)
     print_version
