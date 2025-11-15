@@ -14,6 +14,7 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- `.zshrc` now unaliases `reload` before defining the function, preventing "defining function based on alias" parse errors when Antigen plugins define a `reload` alias.
 - `update-all.sh` now updates git-based Franklin installs even when the GitHub API is unreachable, falling back to direct `git pull` before checking release tarballs.
 - Release status now falls back to the repo `VERSION` file when the GitHub API is unavailable, eliminating spurious “unable to check latest” warnings.
 - `_motd_get_services` no longer assigns to zsh’s read-only `status` parameter, fixing the “read-only variable: status” warning on Debian-based installs.
