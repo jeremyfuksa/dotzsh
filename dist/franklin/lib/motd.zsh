@@ -274,9 +274,8 @@ _motd_render_banner() {
         spaces=$(printf "%*s" "$padding" "")
     fi
 
-    # Use fg_darker as background to match the half-block character colors
-    local middle_bg="${fg_darker/38;/48;}"  # Convert foreground to background color
-    local middle_row="${middle_bg}${text_color_code}${bold}${label}${spaces}${reset}"
+    # Use bg_main for the middle row background (dual-color effect with half-blocks)
+    local middle_row="${bg_main}${text_color_code}${bold}${label}${spaces}${reset}"
 
     # Bottom row: width × ▀ in darker foreground color (no background)
     local bottom_row="${fg_darker}"
