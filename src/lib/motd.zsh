@@ -312,16 +312,32 @@ _motd_build_status_line() {
         version_color=""
     fi
 
-    local disk_used_int=$(printf "%.0f" "$disk_used_gb")
-    local disk_total_int=$(printf "%.0f" "$disk_total_gb")
-    local disk_stats="${disk_color}${disk_percent}% ${disk_used_int}G/${disk_total_int}G${reset}"
+    # Format disk size (use MB if < 1GB)
+    local disk_used_display disk_total_display
+    disk_used_display=$(awk -v val="$disk_used_gb" 'BEGIN {
+        if (val < 1) printf "%.0fM", val * 1024
+        else printf "%.0fG", val
+    }')
+    disk_total_display=$(awk -v val="$disk_total_gb" 'BEGIN {
+        if (val < 1) printf "%.0fM", val * 1024
+        else printf "%.0fG", val
+    }')
+    local disk_stats="${disk_color}${disk_percent}% ${disk_used_display}/${disk_total_display}${reset}"
     local disk_text=" ${disk_color}${disk_icon}${reset} ${bar_colored} ${disk_stats}"
-    local disk_plain=" ${disk_icon} ${bar_plain} ${disk_percent}% ${disk_used_int}G/${disk_total_int}G"
+    local disk_plain=" ${disk_icon} ${bar_plain} ${disk_percent}% ${disk_used_display}/${disk_total_display}"
     local disk_len=${#disk_plain}
 
-    local memory_used_int=$(printf "%.0f" "$memory_used_gb")
-    local memory_total_int=$(printf "%.0f" "$memory_total_gb")
-    local memory_plain="${mem_icon} ${memory_used_int}G/${memory_total_int}G"
+    # Format memory size (use MB if < 1GB)
+    local memory_used_display memory_total_display
+    memory_used_display=$(awk -v val="$memory_used_gb" 'BEGIN {
+        if (val < 1) printf "%.0fM", val * 1024
+        else printf "%.0fG", val
+    }')
+    memory_total_display=$(awk -v val="$memory_total_gb" 'BEGIN {
+        if (val < 1) printf "%.0fM", val * 1024
+        else printf "%.0fG", val
+    }')
+    local memory_plain="${mem_icon} ${memory_used_display}/${memory_total_display}"
     local memory_text="${mem_color}${memory_plain}${reset}"
     local memory_len=${#memory_plain}
 
