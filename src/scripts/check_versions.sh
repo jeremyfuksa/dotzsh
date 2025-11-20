@@ -15,8 +15,6 @@ ROOT_DIR="$(cd "$SRC_DIR/.." && pwd)"
 . "$SRC_DIR/lib/colors.sh"
 # shellcheck source=../lib/ui.sh
 . "$SRC_DIR/lib/ui.sh"
-# shellcheck source=../lib/install_helpers.sh
-. "$SRC_DIR/lib/install_helpers.sh"
 
 APPLY_UPDATES=0
 JSON_OUTPUT=0

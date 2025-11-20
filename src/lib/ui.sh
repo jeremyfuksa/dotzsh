@@ -309,20 +309,20 @@ franklin_ui_run_with_spinner() {
     exit_code=$?
   else
     franklin_ui_blank_line
-    franklin_ui_log run " RUN " "$desc"
+    franklin_ui_bullet "$desc"
     "$@" >"$tmpfile" 2>&1
     exit_code=$?
   fi
 
   franklin_ui_blank_line
   if [ $exit_code -eq 0 ]; then
-    franklin_ui_log success " OK " "$desc"
+    franklin_ui_substatus success "$desc"
     if [ "$verbose" -eq 1 ]; then
       cat "$tmpfile" >&2
     fi
   else
-    franklin_ui_log error "FAIL" "$desc"
-    franklin_ui_log error " INFO" "$desc failed. Last ${tail_lines} log lines:"
+    franklin_ui_substatus error "$desc"
+    franklin_ui_substatus error "$desc failed. Last ${tail_lines} log lines:"
     tail -n "$tail_lines" "$tmpfile" | sed 's/^/    /' >&2
   fi
 
