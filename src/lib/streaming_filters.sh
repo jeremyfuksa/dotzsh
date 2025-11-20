@@ -11,7 +11,7 @@ _should_show_line() {
     apt) _filter_apt "$line" ;;
     dnf) _filter_dnf "$line" ;;
     npm) _filter_npm "$line" ;;
-    antigen|starship|nvm|uv|tool) _filter_tool_update "$line" ;;
+    sheldon|starship|nvm|uv|tool) _filter_tool_update "$line" ;;
     *) return 0 ;;
   esac
 }

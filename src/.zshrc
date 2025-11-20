@@ -34,47 +34,19 @@ if [ -f "$FRANKLIN_PLUGINS_DIR/os_detect.zsh" ]; then
 fi
 
 # ============================================================================
-# Antigen Plugin Manager
+# Sheldon Plugin Manager
 # ============================================================================
 
-# Initialize antigen if available
-antigen_loaded=0
-antigen_candidates=()
+# Initialize Sheldon if available
+if command -v sheldon >/dev/null 2>&1; then
+  # Sheldon config directory
+  export SHELDON_CONFIG_DIR="${SHELDON_CONFIG_DIR:-$HOME/.config/franklin/sheldon}"
 
-if command -v brew >/dev/null 2>&1; then
-  brew_antigen_path="$(brew --prefix antigen 2>/dev/null)/share/antigen/antigen.zsh"
-  if [ -f "$brew_antigen_path" ]; then
-    antigen_candidates+=("$brew_antigen_path")
-  fi
-fi
-
-antigen_candidates+=("$HOME/.antigen/antigen.zsh" "/usr/share/zsh-antigen/antigen.zsh")
-
-for antigen_path in "${antigen_candidates[@]}"; do
-  if [ -f "$antigen_path" ]; then
-    source "$antigen_path"
-    antigen_loaded=1
-    break
-  fi
-done
-
-unset antigen_candidates
-unset brew_antigen_path antigen_path
-
-if [ "$antigen_loaded" -eq 1 ] 2>/dev/null; then
-  # Load plugins
-  antigen bundle zsh-users/zsh-syntax-highlighting
-  antigen bundle zsh-users/zsh-autosuggestions
-  antigen bundle zsh-users/zsh-completions
-  antigen bundle git
-  antigen bundle history-substring-search
-  antigen bundle colored-man-pages
-  antigen bundle command-not-found
-
-  # Apply antigen changes
-  antigen apply
+  # Initialize Sheldon plugins
+  eval "$(sheldon source)"
 else
-  echo "franklin: Antigen not found; skipping plugin initialization" >&2
+  echo "franklin: Sheldon not found; skipping plugin initialization" >&2
+  echo "franklin: Install with: brew install sheldon (macOS) or see https://sheldon.cli.rs" >&2
 fi
 
 # ============================================================================

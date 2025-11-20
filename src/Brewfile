@@ -3,7 +3,7 @@
 
 # Core packages (all required)
 brew "zsh"        # Shell
-brew "antigen"    # Zsh plugin manager (will migrate to sheldon in 2.0)
+brew "sheldon"    # Zsh plugin manager
 brew "starship"   # Cross-shell prompt
 brew "bat"        # Cat with syntax highlighting
 brew "python3"    # Python 3

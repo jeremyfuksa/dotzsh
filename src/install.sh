@@ -862,6 +862,32 @@ setup_zshrc() {
   return 0
 }
 
+setup_sheldon_config() {
+  log_info "Setting up Sheldon plugin configuration..."
+
+  local sheldon_config_dir="$FRANKLIN_CONFIG_DIR/sheldon"
+  local sheldon_plugins="$sheldon_config_dir/plugins.toml"
+  local source_plugins="$FRANKLIN_HOME/sheldon/plugins.toml"
+
+  # Create Sheldon config directory
+  mkdir -p "$sheldon_config_dir"
+
+  # Copy default plugins.toml if it doesn't exist
+  if [ ! -f "$sheldon_plugins" ]; then
+    if [ -f "$source_plugins" ]; then
+      cp "$source_plugins" "$sheldon_plugins"
+      log_success "Sheldon config initialized at $sheldon_plugins"
+    else
+      log_warning "Default Sheldon config not found at $source_plugins"
+      return 1
+    fi
+  else
+    log_debug "Sheldon config already exists at $sheldon_plugins"
+  fi
+
+  return 0
+}
+
 install_platform_specific() {
   log_info "Installing platform-specific dependencies..."
 
@@ -1007,6 +1033,9 @@ install_log_spacer
 
   begin_install_phase "Configure zshrc"
   setup_zshrc || exit 2
+
+  begin_install_phase "Sheldon plugins"
+  setup_sheldon_config || true
 
   begin_install_phase "MOTD colors"
   configure_motd_color || true
