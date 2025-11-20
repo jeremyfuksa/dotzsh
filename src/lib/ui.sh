@@ -365,9 +365,8 @@ franklin_ui_substatus() {
 
 # Streaming helpers
 franklin_ui_stream_filtered() {
-  local badge="$1"
-  local preset="$2"
-  shift 2
+  local preset="$1"
+  shift
   local command=("$@")
 
   local mode="${FRANKLIN_UPDATE_MODE:-auto}"
@@ -376,7 +375,7 @@ franklin_ui_stream_filtered() {
   pkg_count=0
 
   franklin_ui_blank_line
-  franklin_ui_log info "${badge:-[INFO]}" "Running ${command[*]} (${preset})"
+  franklin_ui_bullet "Running ${command[*]} (${preset})"
 
   local exit_code duration
 
@@ -416,12 +415,12 @@ franklin_ui_stream_filtered() {
   duration=$(( $(date +%s) - start_time ))
   if [ $exit_code -eq 0 ]; then
     if [ $pkg_count -gt 0 ]; then
-      franklin_ui_log success "${badge:-[INFO]}" "Processed $pkg_count packages (${duration}s)"
+      franklin_ui_substatus success "Processed $pkg_count packages (${duration}s)"
     else
-      franklin_ui_log success "${badge:-[INFO]}" "Completed (${duration}s)"
+      franklin_ui_substatus success "Completed (${duration}s)"
     fi
   else
-    franklin_ui_log error "${badge:-[INFO]}" "Failed with exit code $exit_code (${duration}s)"
+    franklin_ui_substatus error "Failed with exit code $exit_code (${duration}s)"
   fi
 
   return $exit_code

@@ -72,25 +72,17 @@ run_with_spinner() {
     franklin_ui_run_with_spinner "$desc" "$@"
 }
 
-UPDATE_BADGE="[UPDATE]"
-DEBUG_BADGE="[DEBUG]"
-
-log_info() { franklin_ui_blank_line; franklin_ui_log info "$UPDATE_BADGE" "$@"; }
-log_success() { franklin_ui_blank_line; franklin_ui_log success "  OK " "$@"; }
-log_warning() { franklin_ui_blank_line; franklin_ui_log warning " WARN " "$@"; }
-log_error() { franklin_ui_blank_line; franklin_ui_log error " ERR " "$@"; }
-log_debug() {
-  if [ "$VERBOSE" -eq 1 ]; then
-    franklin_ui_blank_line
-    franklin_ui_log debug "$DEBUG_BADGE" "$@"
-  fi
-}
+log_info() { franklin_ui_blank_line; franklin_ui_bullet "$@"; }
+log_success() { franklin_ui_substatus success "$@"; }
+log_warning() { franklin_ui_substatus warning "$@"; }
+log_error() { franklin_ui_substatus error "$@"; }
+log_debug() { [ "$VERBOSE" -eq 1 ] && franklin_ui_substatus info "$@"; }
 
 stream_update() {
   local preset="$1"
   shift
   if declare -F franklin_ui_stream_filtered >/dev/null 2>&1; then
-    franklin_ui_stream_filtered "$UPDATE_BADGE" "$preset" "$@"
+    franklin_ui_stream_filtered "$preset" "$@"
   else
     "$@"
   fi
