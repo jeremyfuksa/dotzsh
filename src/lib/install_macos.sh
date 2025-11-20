@@ -33,7 +33,7 @@ install_macos_dependencies() {
   fi
 
   log_info "Installing packages from Brewfile..."
-  if brew bundle install --file="$brewfile" --no-upgrade; then
+  if brew bundle install --file="$brewfile" --no-lock; then
     log_success "Homebrew packages installed ✓"
   else
     log_warning "Some Homebrew packages failed to install"

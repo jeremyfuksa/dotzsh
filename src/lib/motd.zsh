@@ -222,8 +222,73 @@ _motd_get_version_info() {
 # ==============================================================================
 # Rendering: T3.4 - Render Banner (3-row colored header)
 # ==============================================================================
-# NOTE: Banner rendering moved to motd-helpers.zsh (_motd_render_banner_themed)
-#       to support multiple theme styles (thick, thin, thin-double)
+
+_motd_render_banner() {
+    local hostname="$1"
+    local ip_address="$2"
+    local bg_sequence="$3"
+    local fg_sequence="$4"
+    local text_color="$5"
+    local width="${6:-80}"
+
+    if [[ -z "$width" || "$width" -le 0 ]]; then
+        width=80
+    elif [[ "$width" -gt 80 ]]; then
+        width=80
+    fi
+
+    # ANSI escape sequences for colors (already built)
+    local fg_darker="$fg_sequence"
+    local bg_main="$bg_sequence"
+    local light_text="${CAMPFIRE_PRIMARY_TEXT_LIGHT:-\033[38;2;247;248;249m}"
+    local dark_text="${CAMPFIRE_NEUTRAL_950:-\033[38;2;28;31;38m}"
+    local text_color_code="$light_text"
+    if [[ "$text_color" == "base" ]]; then
+        text_color_code="$dark_text"          # Dark text
+    fi
+
+    local bold="\033[1m"
+    local reset="${NC:-\033[0m}"
+
+    # Top row: width × ▄ in darker foreground color (no background)
+    local top_row="${fg_darker}"
+    for ((i = 0; i < width; i++)); do
+        top_row+="▄"
+    done
+    top_row+="${reset}"
+
+    # Middle row: space + hostname + space + (IP address) - use same color as half-blocks
+    local label=" ${hostname} (${ip_address})"
+    local visible_len=${#label}
+    local padding=0
+    if [[ $visible_len -gt $width ]]; then
+        label="${label:0:$width}"
+        visible_len=${#label}
+    fi
+    if [[ $visible_len -lt $width ]]; then
+        padding=$((width - visible_len))
+    fi
+
+    local spaces=""
+    if [[ $padding -gt 0 ]]; then
+        spaces=$(printf "%*s" "$padding" "")
+    fi
+
+    # Use bg_main for the middle row background (dual-color effect with half-blocks)
+    local middle_row="${bg_main}${text_color_code}${bold}${label}${spaces}${reset}"
+
+    # Bottom row: width × ▀ in darker foreground color (no background)
+    local bottom_row="${fg_darker}"
+    for ((i = 0; i < width; i++)); do
+        bottom_row+="▀"
+    done
+    bottom_row+="${reset}"
+
+    # Output all three rows
+    echo "$top_row"
+    echo "$middle_row"
+    echo "$bottom_row"
+}
 
 # ==============================================================================
 # Rendering: T3.6 - Render Status Line
@@ -616,7 +681,7 @@ motd() {
         status_line=${status_payload%%|||*}
     fi
 
-    _motd_render_banner_themed "$hostname" "$ip_address" "$banner_bg_seq" "$banner_fg_seq" "$text_color_key" "$motd_width"
+    _motd_render_banner "$hostname" "$ip_address" "$banner_bg_seq" "$banner_fg_seq" "$text_color_key" "$motd_width"
     echo -e "$status_line"
     _motd_render_divider "$motd_width"
 

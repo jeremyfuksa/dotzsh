@@ -93,17 +93,10 @@ install_debian_dependencies() {
     log_debug "Starship already installed"
   fi
 
-  # Sheldon is required (not optional)
-  if ! command -v sheldon >/dev/null 2>&1; then
-    log_info "Installing Sheldon via official installer..."
-    if curl --proto '=https' -fsSL https://rossmacarthur.github.io/install/crate.sh | bash -s -- --repo rossmacarthur/sheldon --to ~/.local/bin; then
-      log_success "Sheldon installed successfully"
-    else
-      log_error "Sheldon installation failed - this is required for Franklin"
-      return 2
-    fi
-  else
-    log_debug "Sheldon already installed"
+  # Antigen is required (not optional)
+  if ! ensure_antigen_installed; then
+    log_error "Antigen installation failed - this is required for Franklin"
+    return 2
   fi
 
   # NVM is required (not optional)

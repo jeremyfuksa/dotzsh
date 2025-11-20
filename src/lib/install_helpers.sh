@@ -40,6 +40,55 @@ _franklin_verify_checksum() {
   return 0
 }
 
+ensure_antigen_installed() {
+  local antigen_dir="${FRANKLIN_ANTIGEN_DIR:-$HOME/.antigen}"
+  local antigen_file="$antigen_dir/antigen.zsh"
+  local antigen_version_file="$antigen_dir/.antigen-version"
+
+  if [ -f "$antigen_file" ]; then
+    if grep -q "/bin/antigen\.zsh" "$antigen_file" 2>/dev/null; then
+      local backup="${antigen_dir}.legacy.$(date +%s)"
+      log_info "Legacy Antigen layout detected; backing up to $backup"
+      rm -rf "$backup"
+      mv "$antigen_dir" "$backup"
+    else
+      log_debug "Antigen already present at $antigen_file"
+      return 0
+    fi
+  elif [ -d "$antigen_dir/bin" ]; then
+    local backup="${antigen_dir}.legacy.$(date +%s)"
+    log_info "Legacy Antigen bin directory detected; backing up to $backup"
+    rm -rf "$backup"
+    mv "$antigen_dir" "$backup"
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    log_warning "curl is required to install Antigen"
+    return 1
+  fi
+
+  log_info "Downloading Antigen (${FRANKLIN_ANTIGEN_VERSION})..."
+  mkdir -p "$antigen_dir"
+
+  local tmp_file
+  tmp_file=$(mktemp) || {
+    log_warning "Unable to create temporary file for Antigen download"
+    return 1
+  }
+
+  if ! curl -fsSL "$FRANKLIN_ANTIGEN_URL" -o "$tmp_file"; then
+    log_warning "Failed to download Antigen from $FRANKLIN_ANTIGEN_URL"
+    rm -f "$tmp_file"
+    return 1
+  fi
+
+  mv "$tmp_file" "$antigen_file"
+  chmod 644 "$antigen_file"
+  echo "$FRANKLIN_ANTIGEN_VERSION" > "$antigen_version_file"
+  log_success "Antigen installed at $antigen_file"
+  return 0
+}
+
 ensure_nvm_installed() {
   local nvm_dir="${NVM_DIR:-$HOME/.nvm}"
   local nvm_script="$nvm_dir/nvm.sh"
@@ -59,7 +108,7 @@ ensure_nvm_installed() {
 
   local nvm_installer_url="https://raw.githubusercontent.com/nvm-sh/nvm/${FRANKLIN_NVM_VERSION}/install.sh"
   local installer
-  installer=$(mktemp "${TMPDIR:-/tmp}/franklin.XXXXXX") || {
+  installer=$(mktemp) || {
     log_warning "Unable to create temporary file for NVM installer"
     return 1
   }
