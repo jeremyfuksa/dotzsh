@@ -81,6 +81,8 @@ Commands:
   update            Update Franklin core files only
   update-all        Run the full unified update workflow
   check             Run the version checker (scripts/check_versions.sh)
+  motd theme        Change MOTD banner theme (thick/thin/thin-double)
+  motd preview      Preview current MOTD with current settings
   reload            Reload the shell configuration (exec zsh)
   version           Alias for --version
   help              Show this help text
@@ -89,6 +91,8 @@ Examples:
   franklin -v
   franklin update --quiet
   franklin check --json
+  franklin motd theme
+  franklin motd preview
 EOF
 }
 
@@ -146,6 +150,54 @@ case "$command" in
     ;;
   version)
     print_version
+    ;;
+  motd)
+    subcommand="${1:-}"
+    shift || true
+    case "$subcommand" in
+      theme)
+        THEME_PICKER="$FRANKLIN_ROOT/scripts/motd_theme_picker.sh"
+        if [ -f "$THEME_PICKER" ]; then
+          bash "$THEME_PICKER" "$@"
+        else
+          log_error "Theme picker script missing: $THEME_PICKER"
+          exit 2
+        fi
+        ;;
+      preview)
+        # Source motd.env and run motd function
+        MOTD_ENV="${FRANKLIN_CONFIG_DIR:-$HOME/.config/franklin}/motd.env"
+        if [ -f "$MOTD_ENV" ]; then
+          source "$MOTD_ENV"
+        fi
+        if command -v motd >/dev/null 2>&1; then
+          motd
+        else
+          log_error "motd function not available. Try: source ~/.zshrc"
+          exit 2
+        fi
+        ;;
+      ""|help)
+        cat <<'MOTD_HELP'
+Franklin MOTD Management
+
+Usage: franklin motd SUBCOMMAND [OPTIONS]
+
+Subcommands:
+  theme        Interactively change banner theme (thick/thin/thin-double)
+  preview      Show current MOTD dashboard with current settings
+
+Examples:
+  franklin motd theme          # Interactive theme picker
+  franklin motd preview        # Preview current MOTD
+MOTD_HELP
+        ;;
+      *)
+        log_error "Unknown motd subcommand: $subcommand"
+        echo "Run 'franklin motd help' for usage." >&2
+        exit 2
+        ;;
+    esac
     ;;
   help|"")
     show_help
