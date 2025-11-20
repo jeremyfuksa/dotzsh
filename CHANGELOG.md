@@ -7,9 +7,52 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.6.0] - 2025-01-20
+
+### Added
+
+- **UV (Python package installer)** now installed on all platforms (macOS via Homebrew, Linux via official installer)
+- **Brewfile-based package management** on macOS for declarative dependency installation
+- **TTY detection** for color output - respects `NO_COLOR` environment variable and disables ANSI codes when output is redirected
+- **Signal handling** (Ctrl+C) in install/update scripts - properly cleans up temp files and restores terminal state
+- **Comprehensive cleanup traps** in spinner UI - prevents corrupted terminal on interrupts
+- `FRANKLIN_FORCE_COLORS` and `FRANKLIN_DISABLE_COLORS` environment variables for color override
+- Python virtual environment support (`python3-venv`) on Debian/Ubuntu
+- Better error messages when installations are interrupted by user
+
+### Changed
+
+- **Core dependencies now required** (not optional) - Antigen, Starship, NVM, and UV must be installed successfully
+- **macOS**: Uses `brew bundle` with Brewfile instead of individual package installs
+- **Debian/Ubuntu**: Added bat to core packages (was optional), improved Starship fallback installer
+- **Fedora/RHEL**: Added bat to core packages, improved Starship fallback installer
+- **Exit codes**: Improved consistency - missing files/commands now use exit code 2 (user error) instead of 1
+- **Stream handling**: Status messages in `franklin reload` now output to stderr instead of stdout
+- Enhanced documentation in `versions.sh` with update instructions and release dates
+
 ### Fixed
 
+- **Color codes no longer pollute pipes and redirects** - fixes CI/CD integration and scriptability
+- **Terminal state properly restored on Ctrl+C** - no more hidden cursor or corrupted display
+- **Temp files cleaned up on interrupt** - prevents orphaned files in `/tmp`
 - `franklin reload` now starts a login shell (`exec zsh -l`), preserving login shell status so `logout` command works correctly
+- `franklin reload` zsh not found error now uses exit code 2 instead of 1 (correct for user error)
+
+### Documentation
+
+- Added `INSTALL_WORKFLOW_DESIGN.md` - architectural design for v2.0 migration to Sheldon plugin manager
+- Added `src/Brewfile` - declarative macOS dependency specification
+- Updated `versions.sh` with inline update instructions and version comments
+
+### Technical
+
+This release completes **Phase 0 critical fixes** identified in architectural review, preparing Franklin for v2.0 development:
+
+- CLI now follows Unix Philosophy (stdout for data, stderr for logs)
+- Respects [no-color.org](https://no-color.org/) standard for accessibility
+- Proper signal handling prevents resource leaks
+- Exit codes follow standard conventions
+- Scriptability improved: `franklin version | grep "1.5"` now works correctly
 
 ## [1.5.7] - 2025-01-15
 
