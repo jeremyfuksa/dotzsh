@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ -z "${FRANKLIN_BOOTSTRAP_ARCHIVE:-}" ]; then
   tmp_archive="$(mktemp "/tmp/franklin-head.XXXXXX.tar.gz")"
-  git -C "$SCRIPT_DIR" archive --format=tar.gz --prefix="franklin-v0.0.0/src/" HEAD src >"$tmp_archive"
+  tar -czf "$tmp_archive" -C "$SCRIPT_DIR/src" .
   export FRANKLIN_BOOTSTRAP_ARCHIVE="file://$tmp_archive"
 fi
 
