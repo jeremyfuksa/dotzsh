@@ -71,7 +71,7 @@ ensure_antigen_installed() {
   mkdir -p "$antigen_dir"
 
   local tmp_file
-  tmp_file=$(mktemp) || {
+  tmp_file=$(mktemp "${TMPDIR:-/tmp}/franklin.XXXXXX") || {
     log_warning "Unable to create temporary file for Antigen download"
     return 1
   }
@@ -108,7 +108,7 @@ ensure_nvm_installed() {
 
   local nvm_installer_url="https://raw.githubusercontent.com/nvm-sh/nvm/${FRANKLIN_NVM_VERSION}/install.sh"
   local installer
-  installer=$(mktemp) || {
+  installer=$(mktemp "${TMPDIR:-/tmp}/franklin.XXXXXX") || {
     log_warning "Unable to create temporary file for NVM installer"
     return 1
   }

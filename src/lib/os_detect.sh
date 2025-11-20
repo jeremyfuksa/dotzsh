@@ -113,11 +113,11 @@ _os_detect_get_family() {
     if [ -n "$distro_id" ]; then
       _os_detect_log "Detected distro: $distro_id"
       case "$distro_id" in
-        ubuntu|debian)
+        ubuntu|debian|pop|elementary|linuxmint|neon)
           OS_FAMILY="debian"
           return 0
           ;;
-        fedora)
+        fedora|rhel|centos|rocky|alma*)
           OS_FAMILY="fedora"
           return 0
           ;;

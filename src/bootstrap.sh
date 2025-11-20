@@ -266,7 +266,7 @@ download_release() {
   if [ -z "$url" ]; then
     url="https://github.com/$OWNER/$REPO/archive/refs/tags/$tag.tar.gz"
   fi
-  TMP_DIR=$(mktemp -d)
+  TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/franklin.XXXXXX")
   local tarball="$TMP_DIR/franklin.tar.gz"
   log_info "Downloading Franklin release ($tag)..."
   curl -fL "$url" -o "$tarball"

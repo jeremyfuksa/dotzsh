@@ -128,53 +128,6 @@ print_version_status() {
   local current_version="unknown"
   local latest_version="unknown"
   local status="unknown"
-  local version_script="$SCRIPT_DIR/scripts/current_franklin_version.sh"
-
-  if [ -x "$version_script" ]; then
-    current_version=$("$version_script" 2>/dev/null || echo "unknown")
-  elif [ -f "$version_file" ]; then
-    current_version=$(cat "$version_file" 2>/dev/null || echo "unknown")
-  fi
-
-  if command -v gh >/dev/null 2>&1; then
-    latest_version=$(gh release view --json tagName -q '.tagName' 2>/dev/null || echo "unknown")
-  else
-    latest_version=$(curl -fsSL "https://api.github.com/repos/jeremyfuksa/franklin/releases/latest" 2>/dev/null \
-      | grep -m1 '"tag_name"' \
-      | sed -E 's/.*"tag_name"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/' 2>/dev/null || echo "unknown")
-  fi
-
-  if [ "$latest_version" = "unknown" ] || [ -z "$latest_version" ]; then
-    latest_version=$(curl -fsSL "https://raw.githubusercontent.com/jeremyfuksa/franklin/main/VERSION" 2>/dev/null | tr -d '\r' || echo "unknown")
-  fi
-
-  if [ "$current_version" != "unknown" ] && [ "$latest_version" != "unknown" ]; then
-    if [ "$current_version" = "$latest_version" ]; then
-      status="current"
-    else
-      status="outdated"
-    fi
-  fi
-
-  case "$status" in
-    current)
-      franklin_ui_plain "${GREEN}${turtle}${NC} Franklin ${current_version} (latest)"
-      ;;
-    outdated)
-      franklin_ui_plain "${YELLOW}${turtle}${NC} Franklin ${current_version} (latest: ${latest_version})"
-      ;;
-    *)
-      franklin_ui_plain "${turtle} Franklin version: ${current_version} (unable to check latest)"
-      ;;
-  esac
-}
-
-print_version_status() {
-  local turtle="🐢"
-  local version_file="$SCRIPT_DIR/VERSION"
-  local current_version="unknown"
-  local latest_version="unknown"
-  local status="unknown"
 
   if [ -f "$version_file" ]; then
     current_version=$(cat "$version_file" 2>/dev/null || echo "unknown")
@@ -315,7 +268,7 @@ step_franklin_core() {
   fi
 
   local tmpdir
-  tmpdir=$(mktemp -d)
+  tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/franklin.XXXXXX")
   local tarball="$tmpdir/franklin.tar.gz"
   local extract_dir="$tmpdir/extracted"
   mkdir -p "$extract_dir"

@@ -291,7 +291,7 @@ franklin_ui_run_with_spinner() {
   fi
 
   local tmpfile
-  tmpfile=$(mktemp)
+  tmpfile=$(mktemp "${TMPDIR:-/tmp}/franklin.XXXXXX")
   local exit_code
 
   # Clean up temp file and restore terminal on exit or interrupt
@@ -390,8 +390,9 @@ franklin_ui_stream_filtered() {
       exit_code=${PIPESTATUS[0]}
       ;;
     auto|*)
-      local fifo
-      fifo=$(mktemp -u "franklin-stream.XXXXXX")
+      local tmpdir fifo
+      tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/franklin.XXXXXX")
+      fifo="$tmpdir/stream.fifo"
       mkfifo "$fifo"
 
       LC_ALL=C "${command[@]}" >"$fifo" 2>&1 &
@@ -408,7 +409,7 @@ franklin_ui_stream_filtered() {
 
       wait "$cmd_pid"
       exit_code=$?
-      rm -f "$fifo"
+      rm -rf "$tmpdir"
       ;;
   esac
 
