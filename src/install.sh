@@ -780,24 +780,21 @@ set_default_shell() {
 
 show_summary() {
   franklin_ui_blank_line
-  franklin_ui_section "Summary"
-  log_success "Installation Complete!"
+  franklin_ui_bullet "Installation Complete"
+  franklin_ui_substatus success "Restart your terminal or run: exec zsh"
+  franklin_ui_substatus info "Verify installation: zsh"
+  franklin_ui_substatus info "Set zsh as default: chsh -s \$(which zsh)"
   franklin_ui_blank_line
-  franklin_ui_plain "Next steps:"
-  franklin_ui_plain "1. Restart your terminal or run: exec zsh"
-  franklin_ui_plain "2. Verify installation: zsh"
-  franklin_ui_plain "3. To set zsh as default: chsh -s \$(which zsh)"
-  franklin_ui_blank_line
-  franklin_ui_plain "Configuration:"
-  franklin_ui_plain "  - Franklin installed: $FRANKLIN_HOME"
-  franklin_ui_plain "  - .zshrc symlink: $ZSHRC_PATH"
+  franklin_ui_bullet "Configuration"
+  franklin_ui_plain "  └ Franklin installed: $FRANKLIN_HOME"
+  franklin_ui_plain "     .zshrc symlink: $ZSHRC_PATH"
   if [ -f "$FRANKLIN_LOCAL_CONFIG" ]; then
-    franklin_ui_plain "  - Local overrides: $FRANKLIN_LOCAL_CONFIG"
+    franklin_ui_plain "     Local overrides: $FRANKLIN_LOCAL_CONFIG"
   fi
   if [ -f "$FRANKLIN_CONFIG_DIR/motd.env" ]; then
-    franklin_ui_plain "  - MOTD color config: $FRANKLIN_CONFIG_DIR/motd.env"
+    franklin_ui_plain "     MOTD color config: $FRANKLIN_CONFIG_DIR/motd.env"
   else
-    franklin_ui_plain "  - MOTD color: default (run install.sh --motd-color <name|hex> to set)"
+    franklin_ui_plain "     MOTD color: default (run install.sh --motd-color <name|hex> to set)"
   fi
   franklin_ui_blank_line
 }

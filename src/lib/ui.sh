@@ -274,7 +274,7 @@ franklin_ui_spinner_wait() {
   done
 
   wait "$pid"
-  local exit_code=$?
+ local exit_code=$?
   printf '\r\033[K' >&2
   return $exit_code
 }
@@ -331,3 +331,101 @@ franklin_ui_run_with_spinner() {
 }
 
 FRANKLIN_UI_HELPERS=1
+
+# Bullet-style logging helpers
+franklin_ui_bullet() {
+  franklin_ui_plain "• $*"
+}
+
+franklin_ui_substatus() {
+  local status="$1"
+  shift
+  local message="$*"
+  local symbol color
+  case "$status" in
+    success)
+      symbol="✓"
+      color="$GREEN"
+      ;;
+    warning)
+      symbol="⚠"
+      color="$YELLOW"
+      ;;
+    error)
+      symbol="✗"
+      color="$RED"
+      ;;
+    info|*)
+      symbol="•"
+      color="$CAMPFIRE_INFO_FG"
+      ;;
+  esac
+  franklin_ui_plain "  └ ${color}${symbol}${NC} ${message}"
+}
+
+# Streaming helpers
+franklin_ui_stream_filtered() {
+  local badge="$1"
+  local preset="$2"
+  shift 2
+  local command=("$@")
+
+  local mode="${FRANKLIN_UPDATE_MODE:-auto}"
+  local start_time pkg_count
+  start_time=$(date +%s)
+  pkg_count=0
+
+  franklin_ui_blank_line
+  franklin_ui_log info "${badge:-[INFO]}" "Running ${command[*]} (${preset})"
+
+  local exit_code duration
+
+  case "$mode" in
+    quiet)
+      "${command[@]}" >/dev/null 2>&1
+      exit_code=$?
+      ;;
+    verbose)
+      LC_ALL=C "${command[@]}" 2>&1 | sed 's/^/  /'
+      exit_code=${PIPESTATUS[0]}
+      ;;
+    auto|*)
+      local fifo
+      fifo=$(mktemp -u "franklin-stream.XXXXXX")
+      mkfifo "$fifo"
+
+      LC_ALL=C "${command[@]}" >"$fifo" 2>&1 &
+      local cmd_pid=$!
+
+      while IFS= read -r line; do
+        if _should_show_line "$preset" "$line"; then
+          printf '  %s\n' "$line"
+        fi
+        if _is_package_line "$preset" "$line"; then
+          pkg_count=$((pkg_count + 1))
+        fi
+      done <"$fifo"
+
+      wait "$cmd_pid"
+      exit_code=$?
+      rm -f "$fifo"
+      ;;
+  esac
+
+  duration=$(( $(date +%s) - start_time ))
+  if [ $exit_code -eq 0 ]; then
+    if [ $pkg_count -gt 0 ]; then
+      franklin_ui_log success "${badge:-[INFO]}" "Processed $pkg_count packages (${duration}s)"
+    else
+      franklin_ui_log success "${badge:-[INFO]}" "Completed (${duration}s)"
+    fi
+  else
+    franklin_ui_log error "${badge:-[INFO]}" "Failed with exit code $exit_code (${duration}s)"
+  fi
+
+  return $exit_code
+}
+
+franklin_ui_stream_filtered_with_timeout() {
+  franklin_ui_stream_filtered "$@"
+}

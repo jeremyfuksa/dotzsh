@@ -46,6 +46,8 @@ FRANKLIN_UI_QUIET=${FRANKLIN_UI_QUIET:-0}
 STEPS_FAILED=0
 STEPS_PASSED=0
 FRANKLIN_ONLY=0
+SHELDON_CONFIG_DIR="${SHELDON_CONFIG_DIR:-$HOME/.config/franklin/sheldon}"
+export SHELDON_CONFIG_DIR
 
 # Shared resources
 # shellcheck source=lib/colors.sh
@@ -54,6 +56,8 @@ FRANKLIN_ONLY=0
 . "$SCRIPT_DIR/lib/versions.sh"
 # shellcheck source=lib/ui.sh
 . "$SCRIPT_DIR/lib/ui.sh"
+# shellcheck source=lib/streaming_filters.sh
+. "$SCRIPT_DIR/lib/streaming_filters.sh"
 
 # ============================================================================
 # Helper Functions
@@ -79,6 +83,16 @@ log_debug() {
   if [ "$VERBOSE" -eq 1 ]; then
     franklin_ui_blank_line
     franklin_ui_log debug "$DEBUG_BADGE" "$@"
+  fi
+}
+
+stream_update() {
+  local preset="$1"
+  shift
+  if declare -F franklin_ui_stream_filtered >/dev/null 2>&1; then
+    franklin_ui_stream_filtered "$UPDATE_BADGE" "$preset" "$@"
+  else
+    "$@"
   fi
 }
 
@@ -203,7 +217,7 @@ run_step() {
   local step_name="$1"
   local step_fn="$2"
 
-  print_section_header "$step_name"
+  franklin_ui_bullet "$step_name"
 
   # Run in subshell for isolation
   if (
@@ -211,17 +225,17 @@ run_step() {
     $step_fn
     return $?
   ); then
-    franklin_ui_log success " OK " "$step_name"
+    franklin_ui_substatus success "Completed"
     ((STEPS_PASSED++))
     return 0
   else
     local exit_code=$?
     if [ $exit_code -eq 1 ]; then
-      log_warning "$step_name skipped (optional)"
+      franklin_ui_substatus warning "Skipped (optional)"
       ((STEPS_PASSED++))
       return 0
     else
-      log_error "$step_name failed"
+      franklin_ui_substatus error "Failed"
       ((STEPS_FAILED++))
       return 1
     fi
@@ -382,61 +396,25 @@ step_os_packages() {
   esac
 }
 
-step_antigen() {
-  # Check if antigen is installed (Homebrew or manual)
-  local antigen_found=0
-  local antigen_path=""
+step_sheldon() {
+  local config_dir="$SHELDON_CONFIG_DIR"
 
-  # Check for Homebrew installation
-  if command -v brew >/dev/null 2>&1; then
-    local brew_antigen="$(brew --prefix antigen 2>/dev/null)/share/antigen/antigen.zsh"
-    if [ -f "$brew_antigen" ]; then
-      antigen_found=1
-      antigen_path="$brew_antigen"
-    fi
-  fi
-
-  # Check for manual installation
-  if [ -f "$HOME/.antigen/antigen.zsh" ]; then
-    antigen_found=1
-    antigen_path="$HOME/.antigen/antigen.zsh"
-  fi
-
-  if [ $antigen_found -eq 0 ]; then
-    log_warning "Antigen not installed, skipping"
+  if ! command -v sheldon >/dev/null 2>&1; then
+    log_warning "Sheldon not installed, skipping"
     return 1
   fi
 
-  # Update Antigen using the proper method
-  if command -v brew >/dev/null 2>&1 && brew list antigen >/dev/null 2>&1; then
-    log_info "Updating Antigen via Homebrew..."
-    if [ -z "$(brew outdated --quiet antigen)" ]; then
-      log_info "Antigen already up to date."
-    else
-      run_with_spinner "Upgrading Antigen" brew upgrade antigen >/dev/null 2>&1
-    fi
-  elif [ -d "$HOME/.antigen/.git" ]; then
-    log_info "Updating Antigen and plugins..."
-    # Use antigen's built-in selfupdate command
-    if run_with_spinner "Updating Antigen and plugins" zsh -c "source '$antigen_path' && antigen selfupdate && antigen update" 2>/dev/null; then
-      log_debug "Antigen and plugins updated successfully"
-    else
-      log_warning "Antigen update failed, trying git pull..."
-      run_with_spinner "Pulling Antigen updates" bash -c "cd '$HOME/.antigen' && git pull --quiet" || log_warning "Git pull failed"
-    fi
-  else
-    log_info "Re-downloading Antigen..."
-    # For single-file installations, re-download
-    if run_with_spinner "Downloading Antigen" curl -fsSL git.io/antigen -o "$antigen_path.tmp" 2>/dev/null; then
-      mv "$antigen_path.tmp" "$antigen_path"
-      log_debug "Antigen updated successfully"
-    else
-      log_warning "Failed to download Antigen update"
-      rm -f "$antigen_path.tmp"
-    fi
+  if [ ! -f "$config_dir/plugins.toml" ]; then
+    log_warning "No Sheldon plugins configured at $config_dir/plugins.toml"
+    return 1
   fi
 
-  return 0
+  if stream_update "tool" env SHELDON_CONFIG_DIR="$config_dir" sheldon lock --update; then
+    return 0
+  fi
+
+  log_error "Sheldon lock refresh failed"
+  return 2
 }
 
 step_starship() {
@@ -778,7 +756,7 @@ main() {
   # Run update steps (isolated)
   run_step "Franklin core" step_franklin_core || true
   run_step "OS packages" step_os_packages || true
-  run_step "Antigen plugins" step_antigen || true
+  run_step "Sheldon plugins" step_sheldon || true
   run_step "Starship prompt" step_starship || true
   run_step "Python runtime" step_python_runtime || true
   run_step "uv CLI" step_uv || true

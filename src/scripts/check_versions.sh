@@ -15,6 +15,8 @@ ROOT_DIR="$(cd "$SRC_DIR/.." && pwd)"
 . "$SRC_DIR/lib/colors.sh"
 # shellcheck source=../lib/ui.sh
 . "$SRC_DIR/lib/ui.sh"
+# shellcheck source=../lib/install_helpers.sh
+. "$SRC_DIR/lib/install_helpers.sh"
 
 APPLY_UPDATES=0
 JSON_OUTPUT=0
@@ -160,63 +162,34 @@ upgrade_nvm() {
   esac
 }
 
-get_antigen_info() {
-  local antigen_dir="${FRANKLIN_ANTIGEN_DIR:-$HOME/.antigen}"
-  local version=""
-  local install_type="absent"
-  local source_path=""
-
-  if command -v brew >/dev/null 2>&1 && brew list --versions antigen >/dev/null 2>&1; then
-    install_type="brew"
-    version=$(brew list --versions antigen 2>/dev/null | awk '{print $2}' | head -n1)
-    source_path="$(brew --prefix antigen 2>/dev/null)"
-  elif [ -d "$antigen_dir/.git" ]; then
-    install_type="git"
-    source_path="$antigen_dir"
-    version=$(cd "$antigen_dir" && git describe --tags "$(git rev-parse HEAD)" 2>/dev/null || true)
-  elif [ -f "$antigen_dir/antigen.zsh" ]; then
-    install_type="file"
-    source_path="$antigen_dir/antigen.zsh"
-    local version_file="$antigen_dir/.antigen-version"
-    if [ -f "$version_file" ]; then
-      version=$(cat "$version_file" 2>/dev/null || true)
-    fi
-  elif [ -f "/usr/share/zsh-antigen/antigen.zsh" ]; then
-    install_type="system"
-    source_path="/usr/share/zsh-antigen/antigen.zsh"
+get_sheldon_info() {
+  if ! command -v sheldon >/dev/null 2>&1; then
+    echo "|absent|"
+    return
   fi
 
-  echo "$version|$install_type|$source_path"
+  local path version install_type="manual"
+  path="$(command -v sheldon)"
+  version=$(sheldon --version 2>/dev/null | awk '{print $2}')
+  if command -v brew >/dev/null 2>&1 && brew list --formula sheldon >/dev/null 2>&1; then
+    install_type="brew"
+  elif [[ "$path" == "$HOME/.cargo/bin/sheldon" ]]; then
+    install_type="cargo"
+  fi
+
+  echo "${version:-}|$install_type|$path"
 }
 
-upgrade_antigen() {
-  local latest="$1"
+upgrade_sheldon() {
+  local _latest="$1"
   local install_type="$2"
-  local source_path="$3"
-  local antigen_dir="${FRANKLIN_ANTIGEN_DIR:-$HOME/.antigen}"
-
   case "$install_type" in
     brew)
-      brew upgrade antigen >/dev/null 2>&1
+      brew upgrade sheldon >/dev/null 2>&1
       ;;
-    git)
-      (
-        cd "$source_path"
-        if [ -n "$(git status --porcelain)" ]; then
-          log_warning "Antigen repo has local modifications; skipping git checkout."
-          exit 0
-        fi
-        git fetch --quiet --tags origin
-        git checkout -q "$latest"
-      )
-      ;;
-    file|absent|system)
-      mkdir -p "$antigen_dir"
-      if curl -fsSL "https://raw.githubusercontent.com/zsh-users/antigen/${latest}/antigen.zsh" -o "$antigen_dir/antigen.zsh"; then
-        echo "$latest" > "$antigen_dir/.antigen-version"
-      else
-        return 1
-      fi
+    manual|cargo|absent|unknown)
+      log_warning "Please upgrade Sheldon manually (current install type: $install_type)"
+      return 1
       ;;
     *)
       return 1
@@ -350,7 +323,7 @@ done
 
 COMPONENTS=(
   "NVM|nvm-sh/nvm|get_nvm_info|upgrade_nvm"
-  "Antigen|zsh-users/antigen|get_antigen_info|upgrade_antigen"
+  "Sheldon|rossmacarthur/sheldon|get_sheldon_info|upgrade_sheldon"
   "uv|astral-sh/uv|get_uv_info|upgrade_uv"
   "bat|sharkdp/bat|get_bat_info|upgrade_bat"
   "fzf|junegunn/fzf|get_fzf_info|upgrade_fzf"
