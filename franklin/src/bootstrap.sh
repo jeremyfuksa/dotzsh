@@ -162,7 +162,7 @@ ui_branch "Starting installation..."
 cd "$INSTALL_DIR"
 
 if [ -f "franklin/src/install.sh" ]; then
-    exec sh "franklin/src/install.sh"
+    exec bash "franklin/src/install.sh"
 else
     ui_error "Installation script not found at franklin/src/install.sh"
 fi
