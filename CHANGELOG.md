@@ -7,29 +7,24 @@ and the project aims to follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Added
+_Nothing yet._
 
-- `franklin_ui_stream_filtered` and `franklin_ui_stream_filtered_with_timeout` provide filtered, real-time output with hang detection and signal-safe cleanup.
-- `src/lib/streaming_filters.sh` centralizes Homebrew/apt/dnf/npm/tool filter presets plus package-count helpers.
-- `--mode=auto|quiet|verbose` flag (and `FRANKLIN_UPDATE_MODE`/`~/.config/franklin/update.env`) to control streaming verbosity in `update-all.sh`.
-- `test/streaming_filters_test.sh` and `test/streaming_integration_test.sh` cover filter accuracy and exit-code propagation.
-- Sheldon plugin management replaces Antigen, including automatic migration of legacy bundles to `plugins.toml` and new sheldon update step in `update-all.sh`.
+## [2.0.0] - 2025-11-21
+
+### Added
+- First-run color prompt (interactive) with numeric selection; `franklin config --color` supports numbers or hex.
+- CI smokes for macOS/Ubuntu with stubbed core tools to validate CLI commands in CI.
+- GitHub Actions workflow for CLI smokes; installer now enforces core deps (Sheldon, bat) with exit-on-missing.
 
 ### Changed
+- Bootstrap invokes `install.sh` with bash for broader Linux (dash/Pi) compatibility; Linux package manager detection now prefers available commands (apt/dnf/yum) for wider distro support.
+- Starship prompt: git branch glyph restored (), Node version shows reliably via broader detection.
+- Campfire CLI: color controls honor NO_COLOR/`--no-color`; `update`/`update-all` gain dry-run, OS package handlers, and stricter exit codes.
+- README updated: correct bootstrap URL, clearer macOS/Linux wording, simplified release workflow for v2 tags.
 
-- `update-all.sh` now streams package manager output by default, replacing spinner-wrapped commands across Franklin core, OS packages, Antigen, Starship, Python, uv, NVM, and npm steps.
-- Added hang detection/timeout messaging plus SSH-aware defaults (`FRANKLIN_UPDATE_TIMEOUT`) for long-running updates.
-- README/CLAUDE documentation updated to describe streaming UI behavior and configuration.
-- Install workflow now generates `~/.config/franklin/sheldon/plugins.toml`, initializes Sheldon in `.zshrc`, and removes all Antigen dependencies.
-- Bootstrap now downloads GitHub tag archives directly and strips to the `src/` payload (no prebuilt dist/ tarball).
-
-### Removed
-
-- Removed `src/scripts/build_release.sh` and committed `dist/` artifacts; releases now rely on GitHub tag archives and a tag/commit-only workflow.
-
-### Documentation
-
-- Added `UPGRADING_TO_V2.md` outlining the v2 streaming behavior changes and compatibility notes.
+### Fixed
+- Cleaned up color selection to ignore ANSI/arrow key input; prompts remain keyboard-friendly.
+- Addressed POSIX/dash failures (`pipefail`) on Raspberry Pi/Bookworm by using bash handoff.
 
 ## [1.6.0] - 2025-01-20
 
