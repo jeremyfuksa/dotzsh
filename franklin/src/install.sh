@@ -94,6 +94,25 @@ done
 
 log_success "Backup complete (if files existed): $BACKUP_DIR"
 
+# --- Color Display Helper ---
+# Convert hex color to ANSI 24-bit color code and display a colored swatch
+show_color() {
+    local name="$1"
+    local hex="$2"
+
+    # Strip # from hex
+    hex="${hex#\#}"
+
+    # Convert hex to RGB
+    local r=$((16#${hex:0:2}))
+    local g=$((16#${hex:2:2}))
+    local b=$((16#${hex:4:2}))
+
+    # ANSI 24-bit color: \033[38;2;R;G;Bm for foreground
+    # Display colored block characters as preview
+    printf "  \033[38;2;%d;%d;%dm████\033[0m  %-15s (#%s)\n" "$r" "$g" "$b" "$name" "$hex" >&2
+}
+
 # --- Campfire Color Selection ---
 log_info "Configuring MOTD color..."
 
@@ -104,13 +123,14 @@ MOTD_COLOR="#607a97"  # Cello
 if [ -t 0 ]; then
     echo "" >&2
     echo "Select your Campfire color for the MOTD banner:" >&2
-    echo "  1) Cello (#607a97)" >&2
-    echo "  2) Terracotta (#b87b6a)" >&2
-    echo "  3) Black Rock (#747b8a)" >&2
-    echo "  4) Sage (#8fb14b)" >&2
-    echo "  5) Golden Amber (#f9c574)" >&2
-    echo "  6) Flamingo (#e75351)" >&2
-    echo "  7) Blue Calx (#b8c5d9)" >&2
+    echo "" >&2
+    show_color "1) Cello" "#607a97"
+    show_color "2) Terracotta" "#b87b6a"
+    show_color "3) Black Rock" "#747b8a"
+    show_color "4) Sage" "#8fb14b"
+    show_color "5) Golden Amber" "#f9c574"
+    show_color "6) Flamingo" "#e75351"
+    show_color "7) Blue Calx" "#b8c5d9"
     echo "  8) Custom (enter hex code)" >&2
     echo "" >&2
 

@@ -284,10 +284,12 @@ def config(
     current_color = load_motd_color()
     ui.print_branch(f"Current MOTD color: {current_color}")
 
-    # Color selection
+    # Color selection with visual swatches
     ui.print_branch("Available Campfire colors:")
+    console.print()
     for name, hex_code in CAMPFIRE_COLORS.items():
-        console.print(f"  - {name}: {hex_code}")
+        # Display colored block characters as preview
+        console.print(f"  [bold {hex_code}]████[/bold {hex_code}]  {name:<15} ({hex_code})")
 
     color_choice = Prompt.ask(
         "\nSelect a color name or enter a hex code",
