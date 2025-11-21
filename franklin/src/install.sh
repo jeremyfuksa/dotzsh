@@ -21,26 +21,75 @@ CONFIG_DIR="${HOME}/.config/franklin"
 CONFIG_FILE="${CONFIG_DIR}/config.env"
 VENV_DIR="${HOME}/.local/share/franklin/venv"
 
-# --- Logging Functions ---
-log_info() {
-    echo "INFO: $*" >&2
+# --- Campfire UI Functions (Bash) ---
+# Mirror the Python Campfire UI library for consistent visual hierarchy
+# All output goes to stderr to preserve stdout for machine-readable data
+
+# Glyphs
+GLYPH_ACTION="⏺"
+GLYPH_BRANCH="⎿"
+GLYPH_LOGIC="∴"
+GLYPH_WAIT="✻"
+
+# Colors (ANSI)
+COLOR_ERROR="\033[38;2;191;97;106m"    # #bf616a
+COLOR_SUCCESS="\033[38;2;163;190;140m"  # #a3be8c
+COLOR_INFO="\033[38;2;136;192;208m"     # #88c0d0
+COLOR_WARNING="\033[38;2;235;203;139m"  # #ebcb8b
+COLOR_RESET="\033[0m"
+
+# Check if we're in a TTY for color support
+if [ -t 2 ]; then
+    USE_COLOR=true
+else
+    USE_COLOR=false
+fi
+
+ui_header() {
+    # ⏺ text
+    echo "${GLYPH_ACTION} $*" >&2
 }
 
-log_success() {
-    echo "SUCCESS: $*" >&2
+ui_branch() {
+    # ⎿  text (3-space indent to align under parent glyph)
+    echo "${GLYPH_BRANCH}  $*" >&2
 }
 
-log_error() {
-    echo "ERROR: $*" >&2
+ui_logic() {
+    # ∴ text
+    echo "${GLYPH_LOGIC} $*" >&2
+}
+
+ui_error() {
+    # ⎿  text (in red)
+    if [ "$USE_COLOR" = true ]; then
+        echo -e "${GLYPH_BRANCH}  ${COLOR_ERROR}$*${COLOR_RESET}" >&2
+    else
+        echo "${GLYPH_BRANCH}  $*" >&2
+    fi
     exit 1
 }
 
-log_warning() {
-    echo "WARNING: $*" >&2
+ui_success() {
+    # ⎿  text (in green)
+    if [ "$USE_COLOR" = true ]; then
+        echo -e "${GLYPH_BRANCH}  ${COLOR_SUCCESS}$*${COLOR_RESET}" >&2
+    else
+        echo "${GLYPH_BRANCH}  $*" >&2
+    fi
+}
+
+ui_warning() {
+    # ⎿  text (in yellow)
+    if [ "$USE_COLOR" = true ]; then
+        echo -e "${GLYPH_BRANCH}  ${COLOR_WARNING}$*${COLOR_RESET}" >&2
+    else
+        echo "${GLYPH_BRANCH}  $*" >&2
+    fi
 }
 
 # --- Platform Detection ---
-log_info "Detecting platform..."
+ui_header "Detecting platform"
 
 OS_FAMILY=""
 OS_DISTRO=""
@@ -65,34 +114,34 @@ case "$(uname -s)" in
                     OS_DISTRO="$ID"
                     ;;
                 *)
-                    log_error "Unsupported Linux distribution: $ID"
+                    ui_error "Unsupported Linux distribution: $ID"
                     ;;
             esac
         else
-            log_error "Cannot determine Linux distribution (/etc/os-release not found)"
+            ui_error "Cannot determine Linux distribution (/etc/os-release not found)"
         fi
         ;;
     *)
-        log_error "Unsupported operating system: $(uname -s)"
+        ui_error "Unsupported operating system: $(uname -s)"
         ;;
 esac
 
-log_success "Platform: $OS_FAMILY ($OS_DISTRO) on $OS_ARCH"
+ui_success "Platform: $OS_FAMILY ($OS_DISTRO) on $OS_ARCH"
 
 # --- Backup Existing Configuration ---
-log_info "Backing up existing Zsh configuration..."
+ui_header "Creating backup of existing configuration"
 
 mkdir -p "$BACKUP_DIR"
 
 for file in .zshrc .zprofile .zshenv; do
     filepath="${HOME}/${file}"
     if [ -f "$filepath" ] && [ ! -L "$filepath" ]; then
-        log_info "Backing up $file to $BACKUP_DIR"
+        ui_branch "Found $file, backing up to $BACKUP_DIR"
         mv "$filepath" "$BACKUP_DIR/"
     fi
 done
 
-log_success "Backup complete (if files existed): $BACKUP_DIR"
+ui_success "Backup complete"
 
 # --- Color Display Helper ---
 # Convert hex color to ANSI 24-bit color code and display a colored swatch
@@ -114,7 +163,7 @@ show_color() {
 }
 
 # --- Campfire Color Selection ---
-log_info "Configuring MOTD color..."
+ui_header "Configuring MOTD color"
 
 # Default color
 MOTD_COLOR="#607a97"  # Cello
@@ -150,11 +199,11 @@ if [ -t 0 ]; then
             if [[ "$custom_color" =~ ^#[0-9A-Fa-f]{6}$ ]]; then
                 MOTD_COLOR="$custom_color"
             else
-                log_warning "Invalid hex code, using default (Cello)"
+                ui_warning "Invalid hex code, using default (Cello)"
             fi
             ;;
         *)
-            log_warning "Invalid choice, using default (Cello)"
+            ui_warning "Invalid choice, using default (Cello)"
             ;;
     esac
 fi
@@ -162,121 +211,121 @@ fi
 # Save color to config
 mkdir -p "$CONFIG_DIR"
 echo "MOTD_COLOR=\"${MOTD_COLOR}\"" > "$CONFIG_FILE"
-log_success "MOTD color set to $MOTD_COLOR"
+ui_success "MOTD color set to $MOTD_COLOR"
 
 # --- Install Dependencies ---
-log_info "Installing dependencies..."
+ui_header "Installing dependencies"
 
 case "$OS_FAMILY" in
     macos)
         # Check for Homebrew
         if ! command -v brew >/dev/null 2>&1; then
-            log_error "Homebrew is required on macOS but not found. Please install it first: https://brew.sh"
+            ui_error "Homebrew is required on macOS but not found. Please install it first: https://brew.sh"
         fi
 
         # Install dependencies
-        log_info "Installing packages via Homebrew..."
+        ui_branch "Installing packages via Homebrew..."
         brew install curl git zsh python3 bat sheldon starship 2>&1 | sed 's/^/  /' >&2 || true
         ;;
 
     debian)
-        log_info "Installing packages via apt..."
+        ui_branch "Installing packages via apt..."
         sudo apt-get update -qq 2>&1 | sed 's/^/  /' >&2
         sudo apt-get install -y -qq curl git zsh python3 python3-venv python3-pip batcat 2>&1 | sed 's/^/  /' >&2 || true
 
         # Install Sheldon (not in apt)
         if ! command -v sheldon >/dev/null 2>&1; then
-            log_info "Installing Sheldon..."
+            ui_branch "Installing Sheldon..."
             curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | bash -s -- --repo rossmacarthur/sheldon --to ~/.local/bin 2>&1 | sed 's/^/  /' >&2
         fi
 
         # Install Starship (not in apt)
         if ! command -v starship >/dev/null 2>&1; then
-            log_info "Installing Starship..."
+            ui_branch "Installing Starship..."
             curl -fsSL https://starship.rs/install.sh | sh -s -- --yes 2>&1 | sed 's/^/  /' >&2
         fi
         ;;
 
     fedora)
-        log_info "Installing packages via dnf..."
+        ui_branch "Installing packages via dnf..."
         sudo dnf install -y curl git zsh python3 python3-pip bat 2>&1 | sed 's/^/  /' >&2 || true
 
         # Install Sheldon (not in dnf)
         if ! command -v sheldon >/dev/null 2>&1; then
-            log_info "Installing Sheldon..."
+            ui_branch "Installing Sheldon..."
             curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | bash -s -- --repo rossmacarthur/sheldon --to ~/.local/bin 2>&1 | sed 's/^/  /' >&2
         fi
 
         # Install Starship (not in dnf)
         if ! command -v starship >/dev/null 2>&1; then
-            log_info "Installing Starship..."
+            ui_branch "Installing Starship..."
             curl -fsSL https://starship.rs/install.sh | sh -s -- --yes 2>&1 | sed 's/^/  /' >&2
         fi
         ;;
 esac
 
-log_success "Dependencies installed"
+ui_success "Dependencies installed"
 
 # --- Install NVM ---
-log_info "Setting up NVM..."
+ui_header "Setting up NVM"
 
 NVM_DIR="${HOME}/.nvm"
 if [ ! -d "$NVM_DIR" ]; then
-    log_info "Installing NVM..."
+    ui_branch "Installing NVM..."
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash 2>&1 | sed 's/^/  /' >&2
 else
-    log_info "NVM already installed"
+    ui_branch "NVM already installed"
 fi
 
-log_success "NVM ready"
+ui_success "NVM ready"
 
 # --- Set up Python Virtual Environment ---
-log_info "Setting up Python virtual environment..."
+ui_header "Setting up Python virtual environment"
 
 if [ ! -d "$VENV_DIR" ]; then
     python3 -m venv "$VENV_DIR"
-    log_success "Virtual environment created at $VENV_DIR"
+    ui_success "Virtual environment created at $VENV_DIR"
 else
-    log_info "Virtual environment already exists"
+    ui_branch "Virtual environment already exists"
 fi
 
 # --- Install Franklin CLI ---
-log_info "Installing Franklin CLI..."
+ui_header "Installing Franklin CLI"
 
 "$VENV_DIR/bin/pip" install --quiet -e "$FRANKLIN_ROOT/franklin" 2>&1 | sed 's/^/  /' >&2 || \
-    log_warning "Failed to install Franklin CLI (non-fatal)"
+    ui_warning "Failed to install Franklin CLI (non-fatal)"
 
-log_success "Franklin CLI installed"
+ui_success "Franklin CLI installed"
 
 # --- Symlink Configuration Files ---
-log_info "Linking configuration files..."
+ui_header "Linking configuration files"
 
 # Link .zshrc
 ZSHRC_TARGET="${FRANKLIN_ROOT}/franklin/templates/zshrc.zsh"
 ZSHRC_LINK="${HOME}/.zshrc"
 
 if [ -L "$ZSHRC_LINK" ]; then
-    log_info "Removing existing .zshrc symlink"
+    ui_branch "Removing existing .zshrc symlink"
     rm "$ZSHRC_LINK"
 fi
 
 ln -sf "$ZSHRC_TARGET" "$ZSHRC_LINK"
-log_success ".zshrc linked to Franklin template"
+ui_success ".zshrc linked to Franklin template"
 
 # Link Sheldon config
 SHELDON_CONFIG_DIR="${HOME}/.config/sheldon"
 mkdir -p "$SHELDON_CONFIG_DIR"
 ln -sf "${FRANKLIN_ROOT}/franklin/config/plugins.toml" "${SHELDON_CONFIG_DIR}/plugins.toml"
-log_success "Sheldon config linked"
+ui_success "Sheldon config linked"
 
 # Link Starship config
 STARSHIP_CONFIG="${HOME}/.config/starship.toml"
 ln -sf "${FRANKLIN_ROOT}/franklin/config/starship.toml" "$STARSHIP_CONFIG"
-log_success "Starship config linked"
+ui_success "Starship config linked"
 
 # --- Post-Install Instructions ---
 echo "" >&2
-log_success "Franklin installation complete!"
+ui_success "Franklin installation complete!"
 echo "" >&2
 echo "Next steps:" >&2
 echo "  1. Add Franklin to your PATH by adding this to your .zshrc:" >&2

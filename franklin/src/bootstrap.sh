@@ -37,61 +37,97 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-# --- Logging Functions ---
-log_info() {
-    echo "INFO: $*" >&2
+# --- Campfire UI Functions (Bash) ---
+# Mirror the Python Campfire UI library for consistent visual hierarchy
+
+# Glyphs
+GLYPH_ACTION="⏺"
+GLYPH_BRANCH="⎿"
+GLYPH_LOGIC="∴"
+
+# Colors (ANSI)
+COLOR_ERROR="\033[38;2;191;97;106m"    # #bf616a
+COLOR_SUCCESS="\033[38;2;163;190;140m"  # #a3be8c
+COLOR_RESET="\033[0m"
+
+# Check if we're in a TTY for color support
+if [ -t 2 ]; then
+    USE_COLOR=true
+else
+    USE_COLOR=false
+fi
+
+ui_header() {
+    # ⏺ text
+    printf "%s %s\n" "${GLYPH_ACTION}" "$*" >&2
 }
 
-log_error() {
-    echo "ERROR: $*" >&2
+ui_branch() {
+    # ⎿  text
+    printf "%s  %s\n" "${GLYPH_BRANCH}" "$*" >&2
+}
+
+ui_error() {
+    # ⎿  text (in red)
+    if [ "$USE_COLOR" = true ]; then
+        printf "%s  %b%s%b\n" "${GLYPH_BRANCH}" "${COLOR_ERROR}" "$*" "${COLOR_RESET}" >&2
+    else
+        printf "%s  %s\n" "${GLYPH_BRANCH}" "$*" >&2
+    fi
     exit 1
 }
 
-log_success() {
-    echo "SUCCESS: $*" >&2
+ui_success() {
+    # ⎿  text (in green)
+    if [ "$USE_COLOR" = true ]; then
+        printf "%s  %b%s%b\n" "${GLYPH_BRANCH}" "${COLOR_SUCCESS}" "$*" "${COLOR_RESET}" >&2
+    else
+        printf "%s  %s\n" "${GLYPH_BRANCH}" "$*" >&2
+    fi
 }
 
 # --- Pre-flight Checks ---
-log_info "Starting Franklin bootstrap..."
+ui_header "Franklin Bootstrap"
 
 # Check OS is supported
 OS="$(uname -s)"
 case "$OS" in
     Darwin)
-        log_info "Detected macOS"
+        ui_branch "Detected macOS"
         ;;
     Linux)
-        log_info "Detected Linux"
+        ui_branch "Detected Linux"
         # Verify it's a supported distro by checking /etc/os-release
         if [ ! -f /etc/os-release ]; then
-            log_error "Cannot determine Linux distribution (/etc/os-release not found)"
+            ui_error "Cannot determine Linux distribution (/etc/os-release not found)"
         fi
         ;;
     *)
-        log_error "Unsupported operating system: $OS (Franklin supports macOS, Debian, and RHEL)"
+        ui_error "Unsupported operating system: $OS (Franklin supports macOS, Debian, and RHEL)"
         ;;
 esac
 
 # Check for required commands
 for cmd in git curl; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
-        log_error "$cmd is required but not found. Please install it and try again."
+        ui_error "$cmd is required but not found. Please install it and try again."
     fi
 done
 
 # Check for Python 3
 if ! command -v python3 >/dev/null 2>&1; then
-    log_error "Python 3 is required but not found. Please install Python 3 and try again."
+    ui_error "Python 3 is required but not found. Please install Python 3 and try again."
 fi
 
-log_success "Pre-flight checks passed"
+ui_success "Pre-flight checks passed"
 
 # --- Fetch Franklin ---
-log_info "Fetching Franklin from $REPO_URL (ref: $GIT_REF)..."
+ui_header "Fetching Franklin"
+ui_branch "Repository: $REPO_URL (ref: $GIT_REF)"
 
 # Remove existing directory if present
 if [ -d "$INSTALL_DIR" ]; then
-    log_info "Removing existing installation at $INSTALL_DIR"
+    ui_branch "Removing existing installation at $INSTALL_DIR"
     rm -rf "$INSTALL_DIR"
 fi
 
@@ -100,15 +136,15 @@ mkdir -p "$(dirname "$INSTALL_DIR")"
 git clone --branch "$GIT_REF" --depth 1 "$REPO_URL" "$INSTALL_DIR" 2>&1 | \
     sed 's/^/  /' >&2
 
-log_success "Franklin fetched to $INSTALL_DIR"
+ui_success "Franklin fetched to $INSTALL_DIR"
 
 # --- Hand off to installer ---
-log_info "Starting installation..."
+ui_branch "Starting installation..."
 
 cd "$INSTALL_DIR"
 
 if [ -f "franklin/src/install.sh" ]; then
     exec sh "franklin/src/install.sh"
 else
-    log_error "Installation script not found at franklin/src/install.sh"
+    ui_error "Installation script not found at franklin/src/install.sh"
 fi
