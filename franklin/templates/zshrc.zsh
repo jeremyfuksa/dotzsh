@@ -84,7 +84,11 @@ case "$(uname -s)" in
         export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
         alias ls="ls -G"
         alias grep="grep --color=auto"
-        alias bat="bat"
+        
+        # Use bat as cat replacement (if installed)
+        if command -v bat >/dev/null 2>&1; then
+            alias cat="bat"
+        fi
         ;;
     Linux)
         # Linux (GNU-based)
@@ -95,6 +99,9 @@ case "$(uname -s)" in
         # Debian/Ubuntu uses 'batcat' instead of 'bat'
         if command -v batcat >/dev/null 2>&1; then
             alias bat="batcat"
+            alias cat="batcat"
+        elif command -v bat >/dev/null 2>&1; then
+            alias cat="bat"
         fi
         ;;
 esac
