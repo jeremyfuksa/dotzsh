@@ -28,6 +28,24 @@ jobs:
           source .venv/bin/activate
           pip install -r franklin/requirements.txt
 
+      - name: Stub core tools (Sheldon, Starship, bat)
+        run: |
+          mkdir -p /tmp/fake-bin
+          cat <<'EOF' > /tmp/fake-bin/sheldon
+#!/usr/bin/env bash
+echo "Sheldon 0.0.0 (stub)"
+EOF
+          cat <<'EOF' > /tmp/fake-bin/starship
+#!/usr/bin/env bash
+echo "starship 0.0.0 (stub)"
+EOF
+          cat <<'EOF' > /tmp/fake-bin/bat
+#!/usr/bin/env bash
+echo "bat 0.0.0 (stub)"
+EOF
+          chmod +x /tmp/fake-bin/*
+          echo "/tmp/fake-bin" >> "$GITHUB_PATH"
+
       - name: CLI smokes
         run: |
           source .venv/bin/activate
