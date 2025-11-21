@@ -259,8 +259,10 @@ def config(
     if color:
         # Set color directly
         if color in CAMPFIRE_COLORS:
-            hex_color = CAMPFIRE_COLORS[color]
+            color_name = color
+            hex_color = CAMPFIRE_COLORS[color]["base"]
         elif color.startswith("#") and len(color) == 7:
+            color_name = "custom"
             hex_color = color
         else:
             ui.print_error(f"Invalid color: {color}")
@@ -268,9 +270,10 @@ def config(
             ui.print_info("Or use hex format: #rrggbb")
             raise typer.Exit(code=1)
 
-        # Save to config
+        # Save to config (store color name for variants, or hex if custom)
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         with open(CONFIG_FILE, "w") as f:
+            f.write(f'MOTD_COLOR_NAME="{color_name}"\n')
             f.write(f'MOTD_COLOR="{hex_color}"\n')
 
         ui.print_success(f"MOTD color set to {color} ({hex_color})")
@@ -281,15 +284,16 @@ def config(
 
     # Show current color
     from .motd import load_motd_color
-    current_color = load_motd_color()
-    ui.print_branch(f"Current MOTD color: {current_color}")
+    current_color_name, current_colors = load_motd_color()
+    ui.print_branch(f"Current MOTD color: {current_color_name} ({current_colors['base']})")
 
     # Color selection with visual swatches
     ui.print_branch("Available Campfire colors:")
     console.print()
-    for name, hex_code in CAMPFIRE_COLORS.items():
+    for name, colors in CAMPFIRE_COLORS.items():
+        base_color = colors["base"]
         # Display colored block characters as preview
-        console.print(f"  [bold {hex_code}]████[/bold {hex_code}]  {name:<15} ({hex_code})")
+        console.print(f"  [bold {base_color}]████[/bold {base_color}]  {name:<15} ({base_color})")
 
     color_choice = Prompt.ask(
         "\nSelect a color name or enter a hex code",
@@ -298,8 +302,10 @@ def config(
 
     # Validate and save
     if color_choice in CAMPFIRE_COLORS:
-        hex_color = CAMPFIRE_COLORS[color_choice]
+        color_name = color_choice
+        hex_color = CAMPFIRE_COLORS[color_choice]["base"]
     elif color_choice.startswith("#") and len(color_choice) == 7:
+        color_name = "custom"
         hex_color = color_choice
     else:
         ui.print_error(f"Invalid color: {color_choice}")
@@ -307,6 +313,7 @@ def config(
 
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     with open(CONFIG_FILE, "w") as f:
+        f.write(f'MOTD_COLOR_NAME="{color_name}"\n')
         f.write(f'MOTD_COLOR="{hex_color}"\n')
 
     ui.print_success(f"MOTD color set to {color_choice} ({hex_color})")

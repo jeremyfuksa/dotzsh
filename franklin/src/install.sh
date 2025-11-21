@@ -168,6 +168,7 @@ ui_header "Configuring MOTD color"
 
 # Default color
 MOTD_COLOR="#607a97"  # Cello
+MOTD_COLOR_NAME="Cello"
 
 # Interactive mode if TTY
 if [ -t 0 ]; then
@@ -187,18 +188,19 @@ if [ -t 0 ]; then
     read -r -p "Enter choice [1-8, default: 1]: " color_choice
 
     case "${color_choice:-1}" in
-        1) MOTD_COLOR="#607a97" ;;
-        2) MOTD_COLOR="#b87b6a" ;;
-        3) MOTD_COLOR="#747b8a" ;;
-        4) MOTD_COLOR="#8fb14b" ;;
-        5) MOTD_COLOR="#f9c574" ;;
-        6) MOTD_COLOR="#e75351" ;;
-        7) MOTD_COLOR="#b8c5d9" ;;
+        1) MOTD_COLOR="#607a97"; MOTD_COLOR_NAME="Cello" ;;
+        2) MOTD_COLOR="#b87b6a"; MOTD_COLOR_NAME="Terracotta" ;;
+        3) MOTD_COLOR="#747b8a"; MOTD_COLOR_NAME="Black Rock" ;;
+        4) MOTD_COLOR="#8fb14b"; MOTD_COLOR_NAME="Sage" ;;
+        5) MOTD_COLOR="#f9c574"; MOTD_COLOR_NAME="Golden Amber" ;;
+        6) MOTD_COLOR="#e75351"; MOTD_COLOR_NAME="Flamingo" ;;
+        7) MOTD_COLOR="#b8c5d9"; MOTD_COLOR_NAME="Blue Calx" ;;
         8)
             read -r -p "Enter hex code (#rrggbb): " custom_color
             # Basic validation
             if [[ "$custom_color" =~ ^#[0-9A-Fa-f]{6}$ ]]; then
                 MOTD_COLOR="$custom_color"
+                MOTD_COLOR_NAME="custom"
             else
                 ui_warning "Invalid hex code, using default (Cello)"
             fi
@@ -211,8 +213,11 @@ fi
 
 # Save color to config
 mkdir -p "$CONFIG_DIR"
-echo "MOTD_COLOR=\"${MOTD_COLOR}\"" > "$CONFIG_FILE"
-ui_success "MOTD color set to $MOTD_COLOR"
+{
+    echo "MOTD_COLOR_NAME=\"${MOTD_COLOR_NAME}\""
+    echo "MOTD_COLOR=\"${MOTD_COLOR}\""
+} > "$CONFIG_FILE"
+ui_success "MOTD color set to $MOTD_COLOR_NAME ($MOTD_COLOR)"
 
 # --- Install Dependencies ---
 ui_header "Installing dependencies"
