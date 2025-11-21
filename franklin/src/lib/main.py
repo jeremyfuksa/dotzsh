@@ -60,22 +60,30 @@ def _ensure_first_run_color(ctx: "typer.Context") -> None:
     ui.print_header("Franklin Configuration (first run)")
     ui.print_branch("Select a MOTD color (base + dark preview):")
     console.print()
-    for name, colors in CAMPFIRE_COLORS.items():
+    choices = list(CAMPFIRE_COLORS.keys())
+    for idx, name in enumerate(choices, start=1):
+        colors = CAMPFIRE_COLORS[name]
         base_color = colors["base"]
         dark_color = colors["dark"]
         console.print(
-            f"  [bold {base_color}]████[/bold {base_color}] [bold {dark_color}]████[/bold {dark_color}]  {name:<15} (base {base_color}, dark {dark_color})"
+            f"  {idx:2d}) [bold {base_color}]████[/bold {base_color}] [bold {dark_color}]████[/bold {dark_color}]  {name:<15} (base {base_color}, dark {dark_color})"
         )
 
-    valid_names = ", ".join(CAMPFIRE_COLORS.keys())
-    color_choice = Prompt.ask(
-        f"\nSelect a color name ({valid_names})",
-        default=DEFAULT_CAMPFIRE_COLOR,
+    default_idx = choices.index(DEFAULT_CAMPFIRE_COLOR) + 1
+    selection = Prompt.ask(
+        f"\nSelect a color number (default {default_idx})",
+        default=str(default_idx),
         show_default=True,
     ).strip()
 
-    if color_choice not in CAMPFIRE_COLORS:
-        ui.print_warning(f"Invalid color: {color_choice}, using default {DEFAULT_CAMPFIRE_COLOR}")
+    try:
+        sel_int = int(selection)
+        if 1 <= sel_int <= len(choices):
+            color_choice = choices[sel_int - 1]
+        else:
+            raise ValueError
+    except ValueError:
+        ui.print_warning(f"Invalid choice: {selection}, using default {DEFAULT_CAMPFIRE_COLOR}")
         color_choice = DEFAULT_CAMPFIRE_COLOR
 
     hex_color = CAMPFIRE_COLORS[color_choice]["base"]
@@ -493,27 +501,36 @@ def config(
     # Color selection with base + dark swatches
     ui.print_branch("Available Campfire colors:")
     console.print()
-    for name, colors in CAMPFIRE_COLORS.items():
+    choices = list(CAMPFIRE_COLORS.keys())
+    for idx, name in enumerate(choices, start=1):
+        colors = CAMPFIRE_COLORS[name]
         base_color = colors["base"]
         dark_color = colors["dark"]
         console.print(
-            f"  [bold {base_color}]████[/bold {base_color}] [bold {dark_color}]████[/bold {dark_color}]  {name:<15} (base {base_color}, dark {dark_color})"
+            f"  {idx:2d}) [bold {base_color}]████[/bold {base_color}] [bold {dark_color}]████[/bold {dark_color}]  {name:<15} (base {base_color}, dark {dark_color})"
         )
 
-    color_choice = Prompt.ask(
-        "\nSelect a color name or enter a hex code",
-        default=DEFAULT_CAMPFIRE_COLOR,
+    default_idx = choices.index(DEFAULT_CAMPFIRE_COLOR) + 1
+    selection = Prompt.ask(
+        "\nSelect a color number or enter a hex code",
+        default=str(default_idx),
     ).strip()
 
-    if color_choice in CAMPFIRE_COLORS:
-        save_color(color_choice, CAMPFIRE_COLORS[color_choice]["base"])
+    # Allow hex entry directly
+    if selection.startswith("#") and len(selection) == 7:
+        save_color("custom", selection)
         return
 
-    if color_choice.startswith("#") and len(color_choice) == 7:
-        save_color("custom", color_choice)
-        return
+    try:
+        sel_int = int(selection)
+        if 1 <= sel_int <= len(choices):
+            color_choice = choices[sel_int - 1]
+            save_color(color_choice, CAMPFIRE_COLORS[color_choice]["base"])
+            return
+    except ValueError:
+        pass
 
-    ui.print_error(f"Invalid color: {color_choice}")
+    ui.print_error(f"Invalid selection: {selection}")
     raise typer.Exit(code=1)
 
 
