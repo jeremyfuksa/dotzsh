@@ -58,16 +58,21 @@ def _ensure_first_run_color(ctx: "typer.Context") -> None:
         return
 
     ui.print_header("Franklin Configuration (first run)")
-    ui.print_branch("Select a MOTD color (default shown below):")
+    ui.print_branch("Select a MOTD color (base + dark preview):")
     console.print()
     for name, colors in CAMPFIRE_COLORS.items():
         base_color = colors["base"]
-        console.print(f"  [bold {base_color}]████[/bold {base_color}]  {name:<15} ({base_color})")
+        dark_color = colors["dark"]
+        console.print(
+            f"  [bold {base_color}]████[/bold {base_color}] [bold {dark_color}]████[/bold {dark_color}]  {name:<15} (base {base_color}, dark {dark_color})"
+        )
 
+    valid_names = ", ".join(CAMPFIRE_COLORS.keys())
     color_choice = Prompt.ask(
-        "\nSelect a color name",
+        f"\nSelect a color name ({valid_names})",
         default=DEFAULT_CAMPFIRE_COLOR,
-    )
+        show_default=True,
+    ).strip()
 
     if color_choice not in CAMPFIRE_COLORS:
         ui.print_warning(f"Invalid color: {color_choice}, using default {DEFAULT_CAMPFIRE_COLOR}")
@@ -457,28 +462,25 @@ def config(
     Without flags: Opens an interactive TUI.
     With --color: Sets the MOTD banner color.
     """
-    if color:
-        # Set color directly
-        if color in CAMPFIRE_COLORS:
-            color_name = color
-            hex_color = CAMPFIRE_COLORS[color]["base"]
-        elif color.startswith("#") and len(color) == 7:
-            color_name = "custom"
-            hex_color = color
-        else:
-            ui.print_error(f"Invalid color: {color}")
-            ui.print_info(f"Valid colors: {', '.join(CAMPFIRE_COLORS.keys())}")
-            ui.print_info("Or use hex format: #rrggbb")
-            raise typer.Exit(code=1)
-
-        # Save to config (store color name for variants, or hex if custom)
+    def save_color(color_name: str, hex_color: str) -> None:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         with open(CONFIG_FILE, "w") as f:
             f.write(f'MOTD_COLOR_NAME="{color_name}"\n')
             f.write(f'MOTD_COLOR="{hex_color}"\n')
+        ui.print_success(f"MOTD color set to {color_name} ({hex_color})")
 
-        ui.print_success(f"MOTD color set to {color} ({hex_color})")
-        return
+    # Flag-driven (non-interactive) path
+    if color:
+        if color in CAMPFIRE_COLORS:
+            save_color(color, CAMPFIRE_COLORS[color]["base"])
+            return
+        if color.startswith("#") and len(color) == 7:
+            save_color("custom", color)
+            return
+        ui.print_error(f"Invalid color: {color}")
+        ui.print_info(f"Valid colors: {', '.join(CAMPFIRE_COLORS.keys())}")
+        ui.print_info("Or use hex format: #rrggbb")
+        raise typer.Exit(code=1)
 
     # Interactive mode
     ui.print_header("Franklin Configuration")
@@ -488,36 +490,31 @@ def config(
     current_color_name, current_colors = load_motd_color()
     ui.print_branch(f"Current MOTD color: {current_color_name} ({current_colors['base']})")
 
-    # Color selection with visual swatches
+    # Color selection with base + dark swatches
     ui.print_branch("Available Campfire colors:")
     console.print()
     for name, colors in CAMPFIRE_COLORS.items():
         base_color = colors["base"]
-        # Display colored block characters as preview
-        console.print(f"  [bold {base_color}]████[/bold {base_color}]  {name:<15} ({base_color})")
+        dark_color = colors["dark"]
+        console.print(
+            f"  [bold {base_color}]████[/bold {base_color}] [bold {dark_color}]████[/bold {dark_color}]  {name:<15} (base {base_color}, dark {dark_color})"
+        )
 
     color_choice = Prompt.ask(
         "\nSelect a color name or enter a hex code",
         default=DEFAULT_CAMPFIRE_COLOR,
-    )
+    ).strip()
 
-    # Validate and save
     if color_choice in CAMPFIRE_COLORS:
-        color_name = color_choice
-        hex_color = CAMPFIRE_COLORS[color_choice]["base"]
-    elif color_choice.startswith("#") and len(color_choice) == 7:
-        color_name = "custom"
-        hex_color = color_choice
-    else:
-        ui.print_error(f"Invalid color: {color_choice}")
-        raise typer.Exit(code=1)
+        save_color(color_choice, CAMPFIRE_COLORS[color_choice]["base"])
+        return
 
-    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    with open(CONFIG_FILE, "w") as f:
-        f.write(f'MOTD_COLOR_NAME="{color_name}"\n')
-        f.write(f'MOTD_COLOR="{hex_color}"\n')
+    if color_choice.startswith("#") and len(color_choice) == 7:
+        save_color("custom", color_choice)
+        return
 
-    ui.print_success(f"MOTD color set to {color_choice} ({hex_color})")
+    ui.print_error(f"Invalid color: {color_choice}")
+    raise typer.Exit(code=1)
 
 
 @app.command()
