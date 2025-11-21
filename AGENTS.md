@@ -1,29 +1,35 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- Core source lives under `src/`, including the primary shell scripts (`update-all.sh`, `install.sh`, `bootstrap.sh`), helper libraries in `src/lib/`, and user-facing config templates such as `src/.zshrc`.
-- Install assets are pulled directly from GitHub tag archives; run-time installs mirror the `src/` layout under `~/.local/share/franklin`.
-- Supporting assets: documentation (`README.md`, `CHANGELOG.md`), release tooling (`src/scripts/`), and tests under `test/` for shell helpers.
+- Franklin now ships as a Python package under `franklin/` (Typer CLI + Rich UI) with dependencies listed in `pyproject.toml` / `requirements.txt`.
+- CLI entrypoint: `franklin/src/lib/main.py` (commands: doctor, update, update-all, config, motd) using the Campfire UI helpers in `franklin/src/lib/ui.py`.
+- Shared palette/glyph/config constants live in `franklin/src/lib/constants.py`; MOTD rendering is in `franklin/src/lib/motd.py` and reads the root `VERSION` plus `~/.config/franklin/config.env`.
+- Shell bootstrap/install wrappers remain in `franklin/src/bootstrap.sh` and `franklin/src/install.sh`; they mirror the Campfire UI hierarchy and handle platform detection, backups, and dependency installs.
+- Tests/demos reside in `test/` (UI demo, Sheldon diagnostic); keep scripts idempotent.
 
-## Build, Test, and Development Commands
-- `./src/scripts/release.sh vX.Y.Z`: Stamps `VERSION`, commits, tags, and pushes.
-- `bash src/update-all.sh --help`: Quick sanity check to confirm argument parsing and step registration.
-- Tests (when present): `bash test/<name>.sh`.
+## Development Workflow
+- Always work in a repo-local venv: `cd franklin && python -m venv .venv && source .venv/bin/activate && pip install -e .`.
+- Run the CLI via the installed `franklin` entrypoint or with `PYTHONPATH=franklin/src python -m lib.main ...` during development.
+- When editing shell installers, preserve `set -euo pipefail`, quote all variable expansions, and keep FRANKLIN_ROOT/CONFIG paths consistent with `constants.py`/Campfire UI styling.
 
-## Coding Style & Naming Conventions
-- Shell scripts use Bash with `set -euo pipefail`; indent with two spaces and quote all variable expansions (`"$var"`).
-- Functions and files are snake_case (`step_franklin_core`, `install_debian_dependencies`).
-- Logging flows through `lib/ui.sh`; prefer `franklin_ui_log` helpers over ad-hoc `echo`.
-- Configuration files remain ASCII; avoid Unicode unless already used (e.g., MOTD glyphs).
+## Coding Style & UX Conventions
+- Use Typer for new commands, keep docstrings short, and route UI/logging through the shared `ui` (CampfireUI) so stdout stays clean for machine-readable output (e.g., `--json`).
+- Reuse glyph/color constants; maintain the structured indentation hierarchy (headers → branches → logic) and prefer Rich helpers for prompts/tables.
+- Persist config as key/value pairs in `~/.config/franklin/config.env` (`CONFIG_DIR.mkdir(parents=True, exist_ok=True)` before writes); keep MOTD changes within `MOTD_MIN_WIDTH`/`MOTD_MAX_WIDTH` and reuse `load_motd_color`/`render_motd` helpers.
+- Shell-side UI should mirror the Python Campfire style (glyphs, stdout/stderr separation) and remain TTY-aware.
 
 ## Testing Guidelines
-- Unit-style shell tests reside in `test/`; name scripts `test_<feature>.sh` and keep them idempotent.
-- Validate interactive scripts by exercising their `--help` or dry-run modes; set `FRANKLIN_TEST_MODE=1` to suppress colorized output in assertions.
-- When adding cross-platform logic, test on macOS plus at least one Debian/Fedora target or mock via `OS_FAMILY` overrides.
+- Add smoke coverage for new Typer commands (`franklin COMMAND --help`, `franklin doctor --json`); keep `test/*.sh` scripts repeatable without privileged installs.
+- Prefer dry-run/TTY-safe execution when touching install/update flows; ensure stderr/stdout separation remains intact.
 
 ## Commit & Pull Request Guidelines
-- Follow conventional, action-oriented messages (`fix: improve Franklin self-update`, `feat: add Franklin helper CLI`). Include `@codex` in commit bodies when collaborator access is needed.
-- When authoring commits yourself, append a `Co-authored-by: Codex <noreply@openai.com>` trailer (per GitHub’s multi-author convention) so collaborator tracking is preserved automatically.
-- Describe PRs with a concise summary, testing notes, and screenshots for UI-facing changes (e.g., MOTD adjustments).
-- Reference related issues/tickets using “Fixes #123” syntax when applicable; ensure `CHANGELOG.md` receives an entry under `[Unreleased]`.
-- **Slash command workflow**: when the user types a plain `release` request (optionally followed by a short description), interpret it as “stage all changes, craft the next semantic commit message (with `@codex` + `Co-authored-by: @codex`), rebuild, and run `./src/scripts/release.sh` with the next logical semver (patch/minor/major). Mention the chosen version in your response if the user didn’t specify one explicitly.
+- Use action-oriented conventional messages (e.g., `feat: add doctor json output`). Include `@codex` in commit bodies when collaborator access is needed and add `Co-authored-by: Codex <codex-noreply@chatgpt.com>` when you author commits.
+- Summarize PRs with changes and testing notes; add screenshots for UI-facing tweaks when applicable. Keep `CHANGELOG.md` under `[Unreleased]` up to date and sync `pyproject.toml` / `VERSION` when bumping versions.
+
+## Agent Personas (see .codex/agents/)
+- Detailed persona briefs live alongside this repo to keep this file lean:
+  - `.codex/agents/cli-architect.md`
+  - `.codex/agents/unix-polyglot.md`
+  - `.codex/agents/docs-architect.md`
+  - `.codex/agents/franklin-architect.md`
+- Use **Franklin Architect** when work touches Franklin; combine with the above as needed (CLI for UX/flags, Unix for portability, Docs for information architecture).

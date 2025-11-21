@@ -15,7 +15,7 @@
 set -euo pipefail
 
 # --- Configuration ---
-FRANKLIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+FRANKLIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
 BACKUP_DIR="${HOME}/.local/share/franklin/backups/$(date +%Y-%m-%d_%H%M%S)"
 CONFIG_DIR="${HOME}/.config/franklin"
 CONFIG_FILE="${CONFIG_DIR}/config.env"

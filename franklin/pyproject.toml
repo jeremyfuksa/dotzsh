@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "franklin-cli"
-version = "2.0.0"
+version = "2.0.0-beta-1"
 description = "A modern Zsh environment manager with cross-platform support"
 authors = [
     {name = "Jeremy Fuksa", email = "jeremy.fuksa@gmail.com"}
@@ -14,10 +14,11 @@ dependencies = [
     "typer>=0.9.0",
     "rich>=13.0.0",
     "psutil>=5.9.0",
+    "typing-extensions>=4.0.0",
 ]
 
 [project.scripts]
-franklin = "lib.main:app"
+franklin = "lib.main:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

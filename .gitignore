@@ -23,6 +23,8 @@ Thumbs.db
 .vim/
 .serena/
 .claude/
+.codex/
+.venv/
 
 # Environment and configuration
 .env

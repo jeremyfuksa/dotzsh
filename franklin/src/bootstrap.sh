@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Franklin Bootstrap Script (Stage 1)
 #
 # Purpose: Fetch Franklin from GitHub and hand off to install.sh
