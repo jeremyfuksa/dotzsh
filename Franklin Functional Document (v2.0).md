@@ -141,35 +141,61 @@ The CLI favors subcommands (verbs) over flags.
 
 ### **3\. The "Campfire" UX Standards**
 
-* **Visual Philosophy:** "Structured, Connected, Minimal." The UI treats every action as a node in a tree. **Hierarchy is enforced via strict indentation**, and **data is presented in aligned columns** to minimize cognitive load.  
+* **Visual Philosophy:** "Structured, Connected, Minimal." The UI treats every action as a node in a tree. **Hierarchy is enforced via strict indentation**, and **data is presented in aligned columns** to minimize cognitive load. **Breathing room is essential** — blank lines separate major sections to prevent visual overwhelm.  
 * **Glyph Dictionary:**  
-  * ⏺ (Record/Action): Indicates the start of a discrete task (e.g., "Installing Zsh").  
+  * ⏺ (Record/Action): Indicates the start of a discrete task or major section (e.g., "Installing Zsh").  
   * ⎿ (Branch/Connector): Connects the action header to its output or metadata.  
+  * ✔ (Success): Indicates successful completion of an operation (displayed in green #a3be8c).  
+  * ⚠ (Warning): Indicates non-critical issues or informational alerts (displayed in yellow #ebcb8b).  
+  * ✗ (Error): Indicates critical failures requiring user action (displayed in red #bf616a).  
   * ∴ (Therefore/Thought): Indicates internal logic, decision making, or checks.  
   * ✻ (Asterisk/Spinner): Indicates active processing.  
 * **Layout Rules:**  
   * **Indentation:**  
-    * **Level 0 (Roots):** Start at column 0\.  
-    * **Level 1 (Outputs):** Indented by **3 spaces** to align under the glyph of the parent.  
+    * **Level 0 (Section Headers):** Start at column 0\.  
+    * **Level 1 (Sub-actions/Branches):** Indented by **2 spaces** to align under the parent glyph.  
+    * **Level 2 (Command Output):** Indented by **4+ spaces** to show subordination.  
+  * **Spacing:**  
+    * **Blank line after each completed section** for breathing room.  
+    * **No blank lines within a section** to keep related items together.  
+    * **Final success message stands alone** without branch glyph for emphasis.  
   * **Columnar Data:**  
     * Lists of keys/values (like in franklin doctor) must be aligned to a grid to allow vertical scanning.  
     * Ragged edges on the "key" side are forbidden.  
 * **Layout Patterns:**  
-  * **Command Execution:**  
-    ⏺ Bash(apt-get install zsh)  
-    ⎿  Reading package lists... Done  
-       Building dependency tree... Done
-
+  * **Section with Success:**  
+    ⏺ Installing dependencies  
+    ⎿  Found Homebrew at /opt/homebrew/bin  
+    ⎿  Installing packages via Homebrew...  
+        ==> Downloading curl-8.17.0...  
+        ==> Installing curl  
+    ⎿  ✔ Dependencies installed  
+    
+  * **Section with Warning:**  
+    ⏺ Creating backup of existing configuration  
+    ⎿  No existing configuration files found  
+    ⎿  ⚠ Skipping backup  
+    
+  * **Section with Error:**  
+    ⏺ Detecting platform  
+    ⎿  ✗ Unsupported operating system: FreeBSD  
+    
+    Installation failed. Franklin supports macOS, Debian, and RHEL-based systems.  
+    
   * **Columnar Status Checks:**  
     ∴ Checking Environment...  
     ⎿  Shell       :: Zsh 5.9  
        OS          :: Debian 12 (Bookworm)  
        Python      :: 3.11.2
 
-  * **Input Prompts:**  
-    ⎿  Tip: Use arrow keys to select your preferred color.
+  * **Final Success Message:**  
+    ✔ Franklin installation complete!  
+    
+    Next steps:  
+      1. Restart your shell or run: exec zsh  
+      2. Verify installation with: franklin doctor  
 
-  * Output Truncation:  
+  * **Output Truncation:**  
     If command output exceeds a threshold (e.g., 10 lines), visually truncate to preserve tree structure.  
     ⎿  ... \+45 lines hidden (full log at \~/.local/share/franklin/logs/latest.log)
 
