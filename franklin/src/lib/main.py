@@ -113,6 +113,11 @@ def _detect_os_family() -> str:
     system = platform.system()
     if system == "Darwin":
         return "macos"
+    # Prefer command detection for broader Linux support (backward-compatible)
+    if shutil.which("apt-get"):
+        return "debian"
+    if shutil.which("dnf") or shutil.which("yum"):
+        return "rhel"
     if Path("/etc/debian_version").exists():
         return "debian"
     if Path("/etc/redhat-release").exists():
