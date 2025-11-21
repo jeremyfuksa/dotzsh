@@ -1,0 +1,119 @@
+════════════════════════════════════════════════════════════════════════════════
+FRANKLIN CAMPFIRE UI DESIGN DEMO
+════════════════════════════════════════════════════════════════════════════════
+
+SCENARIO 1: Normal Installation Flow
+────────────────────────────────────────────────────────────────────────────────
+
+⏺ Detecting platform
+  ⎿  Platform: macos (macos) on arm64
+  ⎿  ✔ Platform detected
+
+⏺ Creating backup of existing configuration
+  ⎿  Found .zshrc, backing up to ~/.local/share/franklin/backups/2025-11-20_231045
+  ⎿  ✔ Backup complete
+
+⏺ Configuring MOTD color
+  ⎿  ✔ MOTD color set to Sage (#8fb14b)
+
+⏺ Installing dependencies
+  ⎿  Found Homebrew at /opt/homebrew/bin
+  ⎿  Installing packages via Homebrew...
+      ==> Downloading curl-8.17.0...
+      ==> Installing curl
+  ⎿  ✔ Dependencies installed
+
+⏺ Setting up Python virtual environment
+  ⎿  Creating virtual environment...
+  ⎿  ✔ Virtual environment created at ~/.local/share/franklin/venv
+
+⏺ Installing Franklin CLI
+  ⎿  Installing Python packages...
+      Collecting typer>=0.9.0
+      Installing collected packages: typer, rich, psutil
+  ⎿  ✔ Franklin CLI installed
+
+⏺ Linking configuration files
+  ⎿  ✔ .zshrc linked to Franklin template
+  ⎿  ✔ Sheldon config linked
+  ⎿  ✔ Starship config linked
+
+✔ Franklin installation complete!
+
+Next steps:
+  1. Restart your shell or run: exec zsh
+  2. Verify installation with: franklin doctor
+
+
+════════════════════════════════════════════════════════════════════════════════
+
+SCENARIO 2: Installation with Warnings
+────────────────────────────────────────────────────────────────────────────────
+
+⏺ Creating backup of existing configuration
+  ⎿  No existing configuration files found
+  ⎿  ⚠ Skipping backup
+
+⏺ Installing dependencies
+  ⎿  Found Homebrew at /opt/homebrew/bin
+  ⎿  Installing packages via Homebrew...
+      Warning: curl 8.17.0 is already installed and up-to-date.
+      Warning: git 2.43.0 is already installed and up-to-date.
+  ⎿  ⚠ Some packages were already installed
+  ⎿  ✔ Dependencies ready
+
+⏺ Installing Franklin CLI
+  ⎿  Installing Python packages...
+      Requirement already satisfied: typer>=0.9.0
+      Requirement already satisfied: rich>=13.0.0
+  ⎿  ⚠ Python packages were already installed
+  ⎿  ✔ Franklin CLI ready
+
+
+════════════════════════════════════════════════════════════════════════════════
+
+SCENARIO 3: Error Conditions
+────────────────────────────────────────────────────────────────────────────────
+
+⏺ Detecting platform
+  ⎿  ✗ Unsupported operating system: FreeBSD
+
+Installation failed. Franklin supports macOS, Debian, and RHEL-based systems.
+Please see https://github.com/youruser/franklin for more information.
+
+────────────────────────────────────────────────────────────────────────────────
+
+⏺ Installing dependencies
+  ⎿  ✗ Homebrew is required on macOS but not found
+
+Please install Homebrew first:
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+Then re-run the Franklin installer.
+
+────────────────────────────────────────────────────────────────────────────────
+
+⏺ Installing Franklin CLI
+  ⎿  Installing Python packages...
+      ERROR: Could not find a version that satisfies the requirement typer>=0.9.0
+      ERROR: No matching distribution found for typer>=0.9.0
+  ⎿  ⚠ Failed to install Franklin CLI (non-fatal)
+
+The CLI installation failed but core configuration is complete.
+You can still use Franklin's shell environment.
+
+
+════════════════════════════════════════════════════════════════════════════════
+
+DESIGN NOTES:
+────────────────────────────────────────────────────────────────────────────────
+
+✓ Clear visual hierarchy with ⏺ headers and ⎿ branches
+✓ Blank lines between sections for breathing room
+✓ Status symbols (✔ ⚠ ✗) immediately convey outcome
+✓ Command output indented to show it's subordinate
+✓ Final success message stands alone without branch glyph
+✓ Errors include actionable remediation steps
+✓ Design feels calm, organized, and professional
+
+════════════════════════════════════════════════════════════════════════════════
