@@ -233,8 +233,16 @@ fi
 # Save color to config
 mkdir -p "$CONFIG_DIR"
 {
+    echo "# Franklin Configuration"
+    echo "# Generated: $(date)"
+    echo ""
+    echo "# MOTD Color (Campfire palette)"
     echo "MOTD_COLOR_NAME=\"${MOTD_COLOR_NAME}\""
     echo "MOTD_COLOR=\"${MOTD_COLOR}\""
+    echo ""
+    echo "# Monitored Services (comma-separated list)"
+    echo "# Example: MONITORED_SERVICES=\"nginx,postgresql,redis\""
+    echo "# MONITORED_SERVICES=\"\""
 } > "$CONFIG_FILE"
 ui_success "MOTD color set to $MOTD_COLOR_NAME ($MOTD_COLOR)"
 ui_section_end

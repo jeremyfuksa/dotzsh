@@ -133,33 +133,43 @@ def get_docker_containers() -> List[str]:
             timeout=2,
         )
         containers = [name.strip() for name in result.stdout.strip().split("\n") if name.strip()]
-
-        # Add mock data if empty (for demo purposes)
-        if not containers:
-            containers = [
-                "nginx-webserver",
-                "mysql-database",
-                "redis-cache",
-                "node-app",
-                "postgres-db",
-                "rabbitmq-queue",
-                "elasticsearch",
-            ]
-
         return containers
     except Exception:
-        # Return mock data if Docker isn't available
-        return [
-            "nginx-webserver",
-            "mysql-database",
-            "redis-cache",
-            "node-app",
-        ]
+        # Return empty list if Docker isn't available
+        return []
+
+
+def get_monitored_services_list() -> List[str]:
+    """
+    Get list of services to monitor from config file.
+    
+    Users can define services in ~/.config/franklin/config.env:
+        MONITORED_SERVICES="service1,service2,service3"
+    """
+    monitored = []
+    
+    try:
+        if CONFIG_FILE.exists():
+            with open(CONFIG_FILE) as f:
+                for line in f:
+                    if line.startswith("MONITORED_SERVICES="):
+                        services_str = line.split("=", 1)[1].strip().strip('"')
+                        monitored = [s.strip() for s in services_str.split(",") if s.strip()]
+                        break
+    except Exception:
+        pass
+    
+    return monitored
 
 
 def get_system_services() -> List[str]:
-    """Get list of running system services (with mock data)."""
-    services = []
+    """Get list of running system services configured by user."""
+    monitored_services = get_monitored_services_list()
+    
+    if not monitored_services:
+        return []
+    
+    running_services = []
     system = platform.system()
 
     try:
@@ -172,33 +182,32 @@ def get_system_services() -> List[str]:
                 check=True,
                 timeout=2,
             )
-            for line in result.stdout.split("\n"):
-                for svc in ["meshtasticd", "spyserver"]:
-                    if svc in line.lower():
-                        services.append(svc)
+            # Check which monitored services are running
+            for service in monitored_services:
+                for line in result.stdout.split("\n"):
+                    if service.lower() in line.lower():
+                        running_services.append(service)
+                        break
+                        
         elif system == "Linux":
-            # Linux: Use systemctl
-            result = subprocess.run(
-                ["systemctl", "--type=service", "--state=running", "--no-pager", "--no-legend"],
-                capture_output=True,
-                text=True,
-                check=True,
-                timeout=2,
-            )
-            for line in result.stdout.split("\n")[:5]:  # Limit to 5 services
-                if line.strip():
-                    parts = line.split()
-                    if parts:
-                        service_name = parts[0].replace(".service", "")
-                        services.append(service_name)
+            # Linux: Use systemctl to check each monitored service
+            for service in monitored_services:
+                try:
+                    result = subprocess.run(
+                        ["systemctl", "is-active", service],
+                        capture_output=True,
+                        text=True,
+                        timeout=1,
+                    )
+                    if result.stdout.strip() == "active":
+                        running_services.append(service)
+                except Exception:
+                    continue
+                    
     except Exception:
         pass
 
-    # Add mock data if empty (for demo purposes)
-    if not services:
-        services = ["meshtasticd", "spyserver"]
-
-    return services
+    return running_services
 
 
 def format_grid(items: List[str], width: int, color: str, max_item_width: int = 22) -> List[Text]:
@@ -247,7 +256,18 @@ def load_motd_color() -> Tuple[str, Dict[str, str]]:
 
 
 def render_motd(width: Optional[int] = None) -> None:
-    """Render the Campfire MOTD banner."""
+    """
+    Render the Campfire MOTD banner.
+    
+    Displays:
+    - Hostname and IP address
+    - System stats (disk, RAM, OS version)
+    - Running Docker containers (if Docker is available)
+    - Monitored services (configured in ~/.config/franklin/config.env)
+    
+    To monitor custom services, add to your config file:
+        MONITORED_SERVICES="service1,service2,service3"
+    """
     console = Console()
 
     # Determine terminal width
