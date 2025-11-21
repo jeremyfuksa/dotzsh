@@ -292,7 +292,7 @@ fi
 # --- Install Franklin CLI ---
 ui_header "Installing Franklin CLI"
 
-"$VENV_DIR/bin/pip" install --quiet -e "$FRANKLIN_ROOT/franklin" 2>&1 | sed 's/^/  /' >&2 || \
+"$VENV_DIR/bin/pip" install --quiet -e "$FRANKLIN_ROOT" 2>&1 | sed 's/^/  /' >&2 || \
     ui_warning "Failed to install Franklin CLI (non-fatal)"
 
 ui_success "Franklin CLI installed"
@@ -301,7 +301,7 @@ ui_success "Franklin CLI installed"
 ui_header "Linking configuration files"
 
 # Link .zshrc
-ZSHRC_TARGET="${FRANKLIN_ROOT}/franklin/templates/zshrc.zsh"
+ZSHRC_TARGET="${FRANKLIN_ROOT}/templates/zshrc.zsh"
 ZSHRC_LINK="${HOME}/.zshrc"
 
 if [ -L "$ZSHRC_LINK" ]; then
@@ -315,12 +315,12 @@ ui_success ".zshrc linked to Franklin template"
 # Link Sheldon config
 SHELDON_CONFIG_DIR="${HOME}/.config/sheldon"
 mkdir -p "$SHELDON_CONFIG_DIR"
-ln -sf "${FRANKLIN_ROOT}/franklin/config/plugins.toml" "${SHELDON_CONFIG_DIR}/plugins.toml"
+ln -sf "${FRANKLIN_ROOT}/config/plugins.toml" "${SHELDON_CONFIG_DIR}/plugins.toml"
 ui_success "Sheldon config linked"
 
 # Link Starship config
 STARSHIP_CONFIG="${HOME}/.config/starship.toml"
-ln -sf "${FRANKLIN_ROOT}/franklin/config/starship.toml" "$STARSHIP_CONFIG"
+ln -sf "${FRANKLIN_ROOT}/config/starship.toml" "$STARSHIP_CONFIG"
 ui_success "Starship config linked"
 
 # --- Post-Install Instructions ---
