@@ -34,18 +34,15 @@ use = ["command-not-found.plugin.zsh"]
 
 [plugins.history-substring-search]
 github = "zsh-users/zsh-history-substring-search"
-apply = ["defer"]
 
 # --- Syntax Highlighting ---
 # Must be loaded near the end
 
 [plugins.zsh-syntax-highlighting]
 github = "zsh-users/zsh-syntax-highlighting"
-apply = ["defer"]
 
 # --- Autosuggestions ---
 # Must be loaded last
 
 [plugins.zsh-autosuggestions]
 github = "zsh-users/zsh-autosuggestions"
-apply = ["defer"]
