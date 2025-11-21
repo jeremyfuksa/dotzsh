@@ -5,7 +5,7 @@
 [![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Debian%20%7C%20RHEL-blue)](#franklin-starter-pack)
 [![Buy Me a Coffee](https://img.shields.io/badge/support-buy%20me%20a%20coffee-fab387)](https://buymeacoffee.com/jeremyfuksa)
 
-Franklin is a cozy Zsh shell setup inspired by the cartoon turtle you probably read about as a kid. He takes great care of his shell, keeps it lightweight, and never carries more than he needs. macOS, Debian/Ubuntu, and RHEL/Fedora each get their own streamlined bundle, so your machine only wears the shell it deserves.
+Franklin is a cozy Zsh shell setup inspired by the cartoon turtle you probably read about as a kid. He keeps your shell lightweight, consistent, and portable—macOS and Linux installs auto-detect what’s available (apt/dnf) so your machine only wears what it needs.
 
 ## Quick Start
 
