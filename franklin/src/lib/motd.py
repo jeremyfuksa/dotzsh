@@ -296,7 +296,8 @@ def render_motd(width: Optional[int] = None) -> None:
     # Header line
     header = f" > {hostname} ({ip})"
     version_text = f"🐢 {version}"
-    padding = width - len(header) - len(version_text)
+    # Emoji takes 2 columns but len() counts it as 1, so add 1 to the padding calculation
+    padding = width - len(header) - len(version_text) - 1
     header_line = f"{header}{' ' * padding}{version_text}"
 
     # Stats line

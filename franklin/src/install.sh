@@ -158,8 +158,9 @@ show_color() {
     local b=$((16#${hex:4:2}))
 
     # ANSI 24-bit color: \033[38;2;R;G;Bm for foreground
+    # Use echo -e to ensure escape sequences are interpreted
     # Display colored block characters as preview
-    printf "  \033[38;2;%d;%d;%dm████\033[0m  %-15s (#%s)\n" "$r" "$g" "$b" "$name" "$hex" >&2
+    echo -e "  \033[38;2;${r};${g};${b}m████\033[0m  $(printf '%-15s' "$name") (#${hex})" >&2
 }
 
 # --- Campfire Color Selection ---
