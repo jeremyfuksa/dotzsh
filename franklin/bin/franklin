@@ -1,0 +1,34 @@
+#!/bin/sh
+# Franklin CLI Shim (POSIX sh)
+#
+# Purpose: Provide a resilient entry point to the Franklin Python CLI
+#
+# Why a shim?
+# - Avoid "chicken and egg" problems where a broken Python environment
+#   prevents fixing the Python environment
+# - Minimal dependencies (POSIX sh only)
+# - Trap signals for clean exits
+# - Check for Python 3 before attempting to run the CLI
+
+set -e
+
+# --- Trap SIGINT for clean exit ---
+trap 'exit 130' INT
+
+# --- Find Franklin root ---
+# This script is at franklin/bin/franklin, so root is ../..
+FRANKLIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+# --- Check for Python 3 ---
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "ERROR: Python 3 is required but not found." >&2
+    echo "Please install Python 3 and try again." >&2
+    exit 1
+fi
+
+# --- Set Python path ---
+# The Python modules are at franklin/src/lib
+export PYTHONPATH="${FRANKLIN_ROOT}/src:${PYTHONPATH:-}"
+
+# --- Execute the Python CLI ---
+exec python3 -m lib.main "$@"

@@ -1,0 +1,51 @@
+# Sheldon Plugin Configuration
+# =============================
+# Plugin manager: https://github.com/rossmacarthur/sheldon
+#
+# This file defines the Zsh plugins loaded by Franklin.
+# Plugins are loaded in the order they appear in this file.
+
+shell = "zsh"
+
+# --- Completions ---
+# Must be loaded early to set up completion system
+
+[plugins.zsh-completions]
+github = "zsh-users/zsh-completions"
+
+# --- Utilities ---
+
+[plugins.git]
+github = "ohmyzsh/ohmyzsh"
+dir = "plugins/git"
+use = ["git.plugin.zsh"]
+
+[plugins.colored-man-pages]
+github = "ohmyzsh/ohmyzsh"
+dir = "plugins/colored-man-pages"
+use = ["colored-man-pages.plugin.zsh"]
+
+[plugins.command-not-found]
+github = "ohmyzsh/ohmyzsh"
+dir = "plugins/command-not-found"
+use = ["command-not-found.plugin.zsh"]
+
+# --- History ---
+
+[plugins.history-substring-search]
+github = "zsh-users/zsh-history-substring-search"
+apply = ["defer"]
+
+# --- Syntax Highlighting ---
+# Must be loaded near the end
+
+[plugins.zsh-syntax-highlighting]
+github = "zsh-users/zsh-syntax-highlighting"
+apply = ["defer"]
+
+# --- Autosuggestions ---
+# Must be loaded last
+
+[plugins.zsh-autosuggestions]
+github = "zsh-users/zsh-autosuggestions"
+apply = ["defer"]

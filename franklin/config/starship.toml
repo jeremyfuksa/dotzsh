@@ -1,0 +1,113 @@
+# Starship Prompt Configuration
+# ==============================
+# Prompt: https://starship.rs
+#
+# Franklin uses a minimal, fast prompt that matches the "Campfire" aesthetic:
+# - Single line (no line breaks)
+# - Concise git status
+# - Fast startup (disable slow modules)
+# - Cross-platform compatible
+
+# General settings
+format = """
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_status\
+$python\
+$nodejs\
+$rust\
+$golang\
+$cmd_duration\
+$line_break\
+$character"""
+
+# Disable scanning for new versions
+add_newline = false
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+
+[username]
+style_user = "bold blue"
+style_root = "bold red"
+format = "[$user]($style) "
+disabled = false
+show_always = false
+
+[hostname]
+ssh_only = true
+format = "[@$hostname](bold yellow) "
+disabled = false
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+format = "[$path]($style)[$read_only]($read_only_style) "
+style = "bold cyan"
+read_only = " 🔒"
+
+[git_branch]
+format = "[$symbol$branch]($style) "
+symbol = " "
+style = "bold purple"
+
+[git_status]
+format = "([\\[$all_status$ahead_behind\\]]($style) )"
+style = "bold red"
+conflicted = "="
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+untracked = "?"
+stashed = "$"
+modified = "!"
+staged = "+"
+renamed = "»"
+deleted = "✘"
+
+[python]
+format = "[${symbol}${pyenv_prefix}(${version} )(\\($virtualenv\\) )]($style)"
+symbol = "🐍 "
+style = "yellow bold"
+
+[nodejs]
+format = "[$symbol($version )]($style)"
+symbol = "⬢ "
+style = "bold green"
+
+[rust]
+format = "[$symbol($version )]($style)"
+symbol = "🦀 "
+style = "bold red"
+
+[golang]
+format = "[$symbol($version )]($style)"
+symbol = "🐹 "
+style = "bold cyan"
+
+[cmd_duration]
+min_time = 500
+format = "[took $duration]($style) "
+style = "bold yellow"
+
+# Disable slow/unnecessary modules for fast startup
+[aws]
+disabled = true
+
+[gcloud]
+disabled = true
+
+[docker_context]
+disabled = true
+
+[kubernetes]
+disabled = true
+
+[terraform]
+disabled = true
+
+[package]
+disabled = true
